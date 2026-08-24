@@ -703,7 +703,8 @@ function applyCloudContext(ctx){
   }
   return true;
 }
-async function loadCloudForSession(){
+let cloudLoadPromise=null;
+async function loadCloudForSessionNow(){
   const localPeople=normalizePeople((await Store.get('people'))||[]);
   const localReleased=(await Store.get('releasedPeople'))||[];
   people=localPeople;releasedPeople=Array.isArray(localReleased)?localReleased:[];
@@ -767,6 +768,12 @@ async function loadCloudForSession(){
       await legacyCloudSave();
     }
   }catch(err){console.error('90:12 legacy cloud load failed:',err);}
+}
+async function loadCloudForSession(){
+  if(cloudLoadPromise)return cloudLoadPromise;
+  cloudLoadPromise=loadCloudForSessionNow();
+  try{return await cloudLoadPromise;}
+  finally{cloudLoadPromise=null;}
 }
 async function cloudSaveNow(){
   if(cloudHydrating||!supabaseClient||!currentSession)return;
