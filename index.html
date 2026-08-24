@@ -118,6 +118,9 @@ h1{font-family:'Cormorant Garamond',serif;font-weight:500;text-align:center;font
 .attachbtn{background:transparent;border:1px dashed rgba(201,168,76,.45);color:#c9a84c;border-radius:20px;padding:7px 14px;font-family:'Cormorant Garamond',serif;font-size:14px;cursor:pointer;letter-spacing:.02em;}
 .attachbtn:hover{border-color:#C9A84C;background:rgba(201,168,76,.1);}
 .salvwrap{max-width:640px;margin:0 auto;padding:8px 4px 30px;}
+.salvbackrow{display:flex;justify-content:flex-start;margin:2px 0 18px;}
+.salvback{background:rgba(20,15,9,.78);border:1px solid rgba(201,168,76,.72);color:#e8dcc8;border-radius:22px;padding:8px 14px;font-family:'Cormorant Garamond',serif;font-size:15px;letter-spacing:.03em;cursor:pointer;}
+.salvback:hover{background:rgba(201,168,76,.92);color:#1f1710;}
 .salvspine{text-align:center;font-family:'Cormorant Garamond',serif;color:#E8DCC8;font-size:24px;line-height:1.5;letter-spacing:.02em;margin:14px 0 16px;}
 .salvpsalm{text-align:center;color:#c9a84c;font-style:italic;font-size:15px;line-height:1.6;margin:0 0 6px;}
 .salvref{font-style:normal;letter-spacing:.05em;font-size:13px;}
@@ -484,6 +487,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
 <div class="modal" id="coachModal"><div class="mbox"><h3 id="coachHead"></h3><div id="coachBody" class="coachbody"></div><div class="mrow"><button onclick="closeModal('coachModal')">Got it</button></div></div></div>
 <div class="view" id="viewHelp"><div class="tabs"><button class="tab" data-t="viewJar" onclick="tab('viewJar')">The Shelf</button><button class="tab" data-t="viewWaymarks" onclick="tab('viewWaymarks')">Waymarks</button><button class="tab" data-t="view12Stones" onclick="tab('view12Stones')">12 Stones</button><button class="tab" data-t="viewChart" onclick="tab('viewChart')">The Captain&rsquo;s Chart</button><button class="tab famtab" data-t="viewFamily" onclick="tab('viewFamily')" style="display:none">Family</button></div><h1 class="jtitle">How this works</h1><p class="jverse">A quiet guide to each room.</p><div id="helpList"></div></div>
 <div class="view" id="viewSalvation"><div class="tabs"><button class="tab" data-t="viewJar" onclick="tab('viewJar')">The Shelf</button><button class="tab" data-t="viewWaymarks" onclick="tab('viewWaymarks')">Waymarks</button><button class="tab" data-t="view12Stones" onclick="tab('view12Stones')">12 Stones</button><button class="tab" data-t="viewChart" onclick="tab('viewChart')">The Captain&rsquo;s Chart</button><button class="tab famtab" data-t="viewFamily" onclick="tab('viewFamily')" style="display:none">Family</button></div><div class="salvwrap">
+<div class="salvbackrow"><button class="salvback" id="salvationBackBtn" onclick="exitSalvation()">&larr; Back Home</button></div>
 <div class="salvspine">Number your days.<br>Live them before God.<br>Leave what matters.</div>
 <div class="salvpsalm">&ldquo;So teach us to number our days, that we may apply our hearts unto wisdom.&rdquo;<br><span class="salvref">&mdash; Psalm 90:12</span></div>
 <div class="salvrule">&#10022;</div>
@@ -818,7 +822,7 @@ async function saveRP(){await Store.set('releasedPeople',releasedPeople);queueCl
 const HOLD=30*864e5;
 
 function el(id){return document.getElementById(id);}
-function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewWaymarks','view12Stones','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=(inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp'||id==='viewSalvation')?'flex':'none';window.scrollTo({top:0,behavior:'smooth'});}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewWaymarks','view12Stones','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=(inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp')?'flex':'none';window.scrollTo({top:0,behavior:'smooth'});}
 function openModal(id){el(id).classList.add('open');} function closeModal(id){el(id).classList.remove('open');}
 function markTabs(id){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.t===id));document.querySelectorAll('.famtab').forEach(t=>t.style.display=people.length>1?'inline-block':'none');}
 function tab(id){if(id==='viewFamily'){showFamily();return;}if(id==='viewWaymarks')renderWaymarks();if(id==='view12Stones')render12Stones();if(id==='viewChart')renderChart();markTabs(id);show(id);if(id==='viewWaymarks')maybeCoach('waymarks');else if(id==='viewChart')maybeCoach('chart');}
@@ -1337,7 +1341,8 @@ function showCoach(room,force){var p=P();if(!p)return;p.seen=p.seen||{};if(!forc
 function maybeCoach(room){showCoach(room,false);}
 function renderHelp(){var c=el('helpList');if(!c)return;c.innerHTML=Object.keys(COACH).map(function(k){return '<div class="helpcard"><h3>'+COACH[k].title+'</h3><div>'+COACH[k].body+'</div></div>';}).join('');}
 function openHelp(){renderHelp();markTabs('');show('viewHelp');}
-function openSalvation(){markTabs('');show('viewSalvation');window.scrollTo({top:0,behavior:'smooth'});}
+function openSalvation(){markTabs('');var b=el('salvationBackBtn');if(b)b.innerHTML=currentSession?'&larr; Back to My Shelf':'&larr; Back Home';show('viewSalvation');window.scrollTo({top:0,behavior:'smooth'});}
+function exitSalvation(){if(currentSession){routeHome();return;}show('viewLetter');showEntryMode('signin');var gate=document.querySelector('#viewLetter .gate');if(gate)gate.classList.add('shown');window.scrollTo({top:0,behavior:'smooth'});}
 function suggestSoon(){say('Coming soon \u2014 we\u2019d love your thoughts here down the road.');}
 function attachSoon(){say('Coming soon \u2014 photos, camera, and files will attach here in the full cloud version.');}
 
