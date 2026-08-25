@@ -638,6 +638,8 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
   <div class="mrow"><button class="ghost" onclick="closeModal('personModal')">Cancel</button><button onclick="savePerson()">Save</button></div>
   <div class="mrow2"><button class="ghost danger" onclick="delPerson()">Delete this shelf</button></div>
 </div></div><div class="modal" id="confirmModal"><div class="mbox"><h3 id="cfHead"></h3><p id="cfMsg" style="color:#c9b78f;font-style:italic;margin:0 0 4px"></p><div class="mrow"><button class="ghost" id="cfCancel" onclick="cfNo()">Cancel</button><button class="danger" id="cfYes" onclick="cfYes()">Delete</button></div></div></div>
+<div class="modal" id="familyInviteRouteModal"><div class="mbox"><h3>Send a family invitation</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">You are about to invite <strong id="familyInviteRouteEmail" style="color:#ead6a5"></strong>.</p><p style="color:#c9b78f;margin:0 0 14px;line-height:1.5">Does this person already have their own 90:12 account?</p><div class="mrow" style="flex-wrap:wrap"><button class="ghost" onclick="closeModal('familyInviteRouteModal')">Cancel</button><button onclick="confirmExistingFamilyInvite()">Yes — Existing account</button><button class="ghost" onclick="explainNewFamilyInviteHold()">No — New to 90:12</button></div><p id="familyInviteRouteHelp" style="color:#8f8064;font-size:12px;margin:12px 0 0;line-height:1.45">Existing-account invitations sign the person into the account they already own. They will not be asked to replace their password.</p></div></div>
+<div class="modal" id="existingMergeModal"><div class="mbox"><h3>Join your family on 90:12?</h3><p id="existingMergeIntro" style="color:#c9b78f;font-style:italic;margin:0 0 12px;line-height:1.5"></p><div style="border:1px solid rgba(203,164,73,.45);border-radius:14px;padding:12px 14px;margin:0 0 12px;text-align:left"><div style="color:#ead6a5;font-weight:600;margin-bottom:6px">Your existing account remains yours.</div><div style="color:#c9b78f;font-size:13px;line-height:1.5">Your existing Journal, Secret Place, prayers, private goals, Waymarks, and other private records are not handed to the household head by joining the family. Only family-visible or deliberately shared material is available to the family.</div></div><div id="existingMergePreview" style="color:#c9b78f;font-size:13px;line-height:1.55;text-align:left;margin:0 0 10px"></div><p id="existingMergeError" style="color:#e0a080;font-size:13px;margin:8px 0 0;line-height:1.45"></p><div class="mrow"><button class="ghost" onclick="declineExistingFamilyMerge()">Not now</button><button id="existingMergeAcceptBtn" onclick="acceptExistingFamilyMerge()">Join family</button></div></div></div>
 <div class="modal" id="eraseModal"><div class="mbox">
   <h3 id="eraseHead" style="color:#e0a080;margin:0 0 6px">Delete this account&rsquo;s data?</h3>
   <p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">This permanently deletes this account&rsquo;s 90:12 data from the <b>cloud</b> and clears the copy cached on this device &mdash; including its shelves, waymarks, 12 Stones, prayers, and journal pages. It cannot be undone.</p>
@@ -948,7 +950,8 @@ function isFamilyInviteReturn(){
 }
 function needsPasswordSetup(){
  if(!currentSession||!currentSession.user)return false;
- if(isFamilyInviteReturn())return true;
+ // Family invitations are NOT new-account password setup. An existing-account
+ // invite authenticates the account the person already owns and keeps its password.
  const pending=pendingPasswordEmail();
  return !!(pending&&String(currentSession.user.email||'').trim().toLowerCase()===pending);
 }
@@ -1024,7 +1027,6 @@ async function saveNewPassword(){
  if(r.error){say('We could not save that password yet. Please try again.');console.error('90:12 password setup failed:',r.error);return;}
  try{localStorage.removeItem('9012_pending_password_email');}catch(e){}
  el('newPassword').value='';el('confirmPassword').value='';
- if(isFamilyInviteReturn()){try{history.replaceState(history.state,'',location.pathname);}catch(e){}}
  await loadCloudForSession();
  routeHome();
 }
@@ -1101,7 +1103,8 @@ function createFirst(){const name=el('name').value.trim()||'You';const _uid=curr
 function openAdd(){if(householdRole==='member'){notify('Head of household','Only the head of household can add another family shelf.');return;}el('aname').value='';el('abd').value='';el('abdText').value='';el('aemail').value='';el('asp').value=77;el('arel').value='Spouse';relDefault();show('viewAdd');}
 async function addPerson(){const name=el('aname').value.trim();const bd=el('abd').value;if(!name||!bd){say('Please add a name and date of birth.');return;}
  const np={id:newPersonId(),name,relation:el('arel').value,birth:bd,gender:el('agender').value,lifespan:parseInt(el('asp').value,10)||77,email:el('aemail').value.trim(),nick:(el('anick')?el('anick').value.trim():''),autoGift:false,linked_user_id:'',visibility:'private',waymarks:[],goals:[],released:[],prayers:[],journal:[],seen:{}};people.push(np);savePeople();
- if(np.email&&canManageFamilyInvite(np))await sendFamilyInviteForPerson(np,true);
+ // Do not send automatically. The household manager must review the exact email
+ // and deliberately choose Existing account or New to 90:12.
  showFamily();}
 function showFamily(){renderFamily();markTabs('viewFamily');show('viewFamily');}
 let familyShelfPersonIndex=-1;
@@ -1198,46 +1201,259 @@ function canManageFamilyInvite(p){
  const s=familyConnectionStatus(p);
  return !!(s&&s.kind==='pending'&&(householdRole==='head'||householdRole==='spouse_parent'));
 }
-function familyInviteRedirectUrl(){
- try{if(/^https?:$/.test(location.protocol))return location.origin+location.pathname+'?familyInvite=1';}catch(e){}
- return 'https://test.the9012project.com/?familyInvite=1';
+let pendingFamilyInvitePersonId=null;
+let pendingExistingMergePreview=null;
+let existingMergeBusy=false;
+
+function familyInviteToken(){
+ try{return (new URLSearchParams(location.search).get('invite')||'').trim();}catch(e){return '';}
+}
+function familyInviteRoute(){
+ try{return (new URLSearchParams(location.search).get('route')||'existing').trim().toLowerCase();}catch(e){return 'existing';}
+}
+function familyInviteRedirectUrl(token,route){
+ let base;
+ try{base=/^https?:$/.test(location.protocol)?(location.origin+location.pathname):'https://test.the9012project.com/';}
+ catch(e){base='https://test.the9012project.com/';}
+ const u=new URL(base,location.href);
+ u.searchParams.set('familyInvite','1');
+ u.searchParams.set('route',route||'existing');
+ if(token)u.searchParams.set('invite',token);
+ return u.toString();
+}
+function clearFamilyInviteUrl(){
+ try{
+   const u=new URL(location.href);
+   u.searchParams.delete('familyInvite');u.searchParams.delete('route');u.searchParams.delete('invite');
+   const q=u.searchParams.toString();
+   history.replaceState(history.state,'',u.pathname+(q?'?'+q:'')+u.hash);
+ }catch(e){}
 }
 function validInviteEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());}
+function rpcSignatureMiss(err){
+ const s=String((err&&((err.message||'')+' '+(err.details||'')+' '+(err.hint||'')))||'');
+ return /PGRST202|schema cache|could not find the function|function .* parameters|no function matches/i.test(s);
+}
+async function rpcTrySignatures(name,candidates){
+ let last=null;
+ for(const args of candidates){
+   const r=await supabaseClient.rpc(name,args||{});
+   if(!r.error)return r;
+   last=r.error;
+   if(!rpcSignatureMiss(r.error))throw r.error;
+ }
+ throw last||new Error('RPC signature not available');
+}
+function firstObject(v){return Array.isArray(v)?(v[0]||{}):(v||{});}
+function extractInviteToken(data){
+ const seen=new Set();
+ function walk(v,depth){
+   if(v==null||depth>4)return '';
+   if(typeof v==='string')return '';
+   if(typeof v!=='object'||seen.has(v))return '';
+   seen.add(v);
+   const keys=['invitation_token','invite_token','raw_token','claim_token','token'];
+   for(const k of keys)if(typeof v[k]==='string'&&v[k].trim())return v[k].trim();
+   if(Array.isArray(v)){for(const x of v){const t=walk(x,depth+1);if(t)return t;}}
+   else{for(const k of Object.keys(v)){const t=walk(v[k],depth+1);if(t)return t;}}
+   return '';
+ }
+ return walk(data,0);
+}
+async function prepareFamilyInvitationRpc(p,email,route){
+ const base={id:p.id,email:email,route:route};
+ const candidates=[
+   {p_person_id:base.id,p_email:base.email,p_account_route:base.route},
+   {p_target_person_id:base.id,p_email:base.email,p_account_route:base.route},
+   {p_person_id:base.id,p_invitee_email:base.email,p_account_route:base.route},
+   {p_target_person_id:base.id,p_invitee_email:base.email,p_account_route:base.route},
+   {p_person_id:base.id,p_email:base.email,p_route:base.route},
+   {p_target_person_id:base.id,p_email:base.email,p_route:base.route}
+ ];
+ return rpcTrySignatures('app9012_prepare_family_invitation',candidates);
+}
+async function previewExistingMergeRpc(){
+ const token=familyInviteToken();
+ const candidates=[];
+ if(token){
+   candidates.push({p_invitation_token:token},{p_invite_token:token},{p_token:token});
+ }
+ candidates.push({});
+ return rpcTrySignatures('app9012_preview_existing_account_merge',candidates);
+}
+async function acceptExistingMergeRpc(preview){
+ const token=familyInviteToken();
+ const d=firstObject(preview);
+ const invitationId=d.invitation_id||d.invite_id||((d.invitation||{}).id)||'';
+ const candidates=[];
+ if(token){
+   candidates.push({p_invitation_token:token},{p_invite_token:token},{p_token:token});
+   if(invitationId){
+     candidates.push({p_invitation_id:invitationId,p_invitation_token:token});
+     candidates.push({p_invitation_id:invitationId,p_token:token});
+   }
+ }
+ if(invitationId)candidates.push({p_invitation_id:invitationId});
+ candidates.push({});
+ return rpcTrySignatures('app9012_accept_existing_account_merge',candidates);
+}
+function canServerPreviewMerge(d){
+ d=firstObject(d);
+ if(d.can_merge===false||d.merge_allowed===false||d.allowed===false||d.blocked===true)return false;
+ return true;
+}
+function previewLabel(d){
+ d=firstObject(d);
+ return d.target_person_name||d.pending_person_name||d.person_name||d.target_name||'';
+}
+function previewHouseholdLabel(d){
+ d=firstObject(d);
+ return d.household_name||d.target_household_name||d.family_name||'';
+}
+function showExistingMergePreview(data){
+ pendingExistingMergePreview=data;
+ const d=firstObject(data);
+ const who=previewLabel(d);
+ const household=previewHouseholdLabel(d);
+ const intro=el('existingMergeIntro');
+ if(intro)intro.textContent=(who?('This invitation connects your existing account to '+who+'\u2019s family shelf.'):'This invitation connects your existing 90:12 account to the family that invited you.')+(household?(' Household: '+household+'.'):'');
+ const box=el('existingMergePreview');
+ if(box){
+   const preserved=d.private_records_preserved!==false;
+   const sourceCount=d.source_private_record_count??d.existing_private_record_count??null;
+   const targetCount=d.target_private_record_count??d.pending_private_record_count??null;
+   let parts=[];
+   parts.push('Existing account: preserved');
+   parts.push('Private records: '+(preserved?'remain private':'server review required'));
+   if(sourceCount!=null)parts.push('Existing private records found: '+sourceCount);
+   if(targetCount!=null)parts.push('Family-profile private records found: '+targetCount+' (the server will reconcile safely)');
+   parts.push('Password: unchanged');
+   box.innerHTML=parts.map(function(x){return '<div>\u2022 '+esc(String(x))+'</div>';}).join('');
+ }
+ const allowed=canServerPreviewMerge(d);
+ const err=el('existingMergeError'),btn=el('existingMergeAcceptBtn');
+ if(btn){btn.disabled=!allowed;btn.style.opacity=allowed?'1':'.45';btn.textContent='Join family';}
+ if(err)err.textContent=allowed?'':'90:12 stopped this merge because the server preview found a safety condition. Nothing has been changed.';
+ openModal('existingMergeModal');
+}
+async function beginExistingFamilyMergeReturn(){
+ if(!isFamilyInviteReturn()||!currentSession||!supabaseClient)return false;
+ // Only the existing-account route is enabled in this build. Old familyInvite links
+ // with no route are treated as existing-account links so they never force a password.
+ if(familyInviteRoute()==='new'){
+   pendingExistingMergePreview=null;
+   if(el('existingMergeIntro'))el('existingMergeIntro').textContent='This is a new-account invitation, but the secure new-account claim path is not enabled in this build.';
+   if(el('existingMergePreview'))el('existingMergePreview').textContent='No account or family data has been changed.';
+   if(el('existingMergeError'))el('existingMergeError').textContent='Ask the family manager to resend after the new-account invitation path is enabled.';
+   if(el('existingMergeAcceptBtn')){el('existingMergeAcceptBtn').disabled=true;el('existingMergeAcceptBtn').style.opacity='.45';}
+   openModal('existingMergeModal');
+   return true;
+ }
+ try{
+   if(el('existingMergeError'))el('existingMergeError').textContent='Checking the invitation safely\u2026';
+   openModal('existingMergeModal');
+   const r=await previewExistingMergeRpc();
+   showExistingMergePreview(r.data);
+   return true;
+ }catch(err){
+   console.error('90:12 existing-account merge preview failed:',err);
+   pendingExistingMergePreview=null;
+   if(el('existingMergeIntro'))el('existingMergeIntro').textContent='90:12 could not verify this family invitation yet.';
+   if(el('existingMergePreview'))el('existingMergePreview').textContent='Your existing account has not been changed.';
+   if(el('existingMergeError'))el('existingMergeError').textContent='The invitation could not be verified safely. Nothing was merged. Please have the family manager resend the invitation from the updated app.';
+   if(el('existingMergeAcceptBtn')){el('existingMergeAcceptBtn').disabled=true;el('existingMergeAcceptBtn').style.opacity='.45';}
+   openModal('existingMergeModal');
+   return true;
+ }
+}
+async function acceptExistingFamilyMerge(){
+ if(existingMergeBusy||!pendingExistingMergePreview||!canServerPreviewMerge(pendingExistingMergePreview))return;
+ existingMergeBusy=true;
+ const btn=el('existingMergeAcceptBtn'),err=el('existingMergeError');
+ if(btn){btn.disabled=true;btn.textContent='Connecting\u2026';}
+ if(err)err.textContent='Connecting your existing account without changing your password or private-record ownership\u2026';
+ try{
+   const r=await acceptExistingMergeRpc(pendingExistingMergePreview);
+   if(r.error)throw r.error;
+   closeModal('existingMergeModal');
+   pendingExistingMergePreview=null;
+   clearFamilyInviteUrl();
+   // Do not replace any local shelf until the server confirms the merge transaction.
+   await loadCloudForSession();
+   routeHome();
+   showToast('<span>You are connected to your family. Your existing private records remain yours.</span>');
+ }catch(ex){
+   console.error('90:12 existing-account merge acceptance failed:',ex);
+   if(err)err.textContent='The connection was not completed. Nothing was intentionally changed. Please try again or resend the invitation.';
+   if(btn){btn.disabled=false;btn.textContent='Join family';}
+ }finally{existingMergeBusy=false;}
+}
+async function declineExistingFamilyMerge(){
+ if(existingMergeBusy)return;
+ closeModal('existingMergeModal');
+ pendingExistingMergePreview=null;
+ clearFamilyInviteUrl();
+ // Return the person to the account they already owned; do not claim the family shelf.
+ await loadCloudForSession();
+ routeHome();
+}
 async function sendFamilyInviteForPerson(p,automatic){
  if(!canManageFamilyInvite(p)){if(!automatic)say('This shelf is not available for an invitation.');return false;}
  const email=String(p.email||'').trim().toLowerCase();
  if(!validInviteEmail(email)){if(!automatic)say('Add a valid access email first.');return false;}
- const btn=el('sendInviteBtn');if(btn&&P()===p){btn.disabled=true;btn.textContent='Sending\u2026';}
+ // Never auto-send after an email edit or person creation. The manager must review
+ // the exact address and deliberately choose the account route.
+ if(automatic)return false;
+ pendingFamilyInvitePersonId=p.id;
+ if(el('familyInviteRouteEmail'))el('familyInviteRouteEmail').textContent=email;
+ if(el('familyInviteRouteHelp'))el('familyInviteRouteHelp').textContent='Existing-account invitations sign the person into the account they already own. They will not be asked to replace their password.';
+ openModal('familyInviteRouteModal');
+ return true;
+}
+async function confirmExistingFamilyInvite(){
+ const p=people.find(function(x){return x.id===pendingFamilyInvitePersonId;})||P();
+ if(!p)return;
+ const email=String(p.email||'').trim().toLowerCase();
+ if(!validInviteEmail(email)){closeModal('familyInviteRouteModal');say('Add a valid access email first.');return;}
+ const btn=el('sendInviteBtn');
+ closeModal('familyInviteRouteModal');
+ if(btn&&P()===p){btn.disabled=true;btn.textContent='Preparing\u2026';}
  try{
-   const r=await supabaseClient.auth.signInWithOtp({email:email,options:{shouldCreateUser:true,emailRedirectTo:familyInviteRedirectUrl()}});
+   // Create the server-side invitation first. The raw invitation token is used only
+   // in the one-time return URL; it is never used as account identity by itself.
+   const prep=await prepareFamilyInvitationRpc(p,email,'existing');
+   const token=extractInviteToken(prep.data);
+   if(!token)throw new Error('The invitation server did not return a one-time invitation token.');
+   const r=await supabaseClient.auth.signInWithOtp({email:email,options:{shouldCreateUser:false,emailRedirectTo:familyInviteRedirectUrl(token,'existing')}});
    if(r.error)throw r.error;
    p.invite_sent_at=new Date().toISOString();
+   p.invite_account_route='existing';
    savePeople();
    if(P()===p){if(el('inviteSent'))el('inviteSent').textContent=new Date(p.invite_sent_at).toLocaleString();if(btn)btn.textContent='Resend Invite';}
-   if(!automatic)say('Invitation sent to '+email+'.');
-   return true;
+   say('Invitation sent to '+email+'. Their existing password will not be changed.');
  }catch(err){
-   console.error('90:12 family invitation failed:',err);
-   const msg=String((err&&err.message)||'');
-   if(/signup|signups|disabled|not allowed/i.test(msg))say('New-user signup appears to be off in Supabase. Turn it on temporarily, then resend the invitation.');
-   else say('The invitation could not be sent yet. No shelf access was changed.');
-   return false;
+   console.error('90:12 existing-account invitation failed:',err);
+   say('The invitation could not be prepared safely, so no family connection was made. Please try again.');
  }finally{if(btn&&P()===p){btn.disabled=false;btn.textContent=p.invite_sent_at?'Resend Invite':'Send Invite';}}
 }
+function explainNewFamilyInviteHold(){
+ closeModal('familyInviteRouteModal');
+ say('New-account family invitations are temporarily held while we finish the secure one-time claim path. No invitation was sent. Existing-account invitations are ready for testing.');
+}
 async function sendFamilyInvite(automatic){return sendFamilyInviteForPerson(P(),!!automatic);}
-function changeInviteEmail(){const i=el('emailSpot');if(!i)return;i.focus();i.select();say('Change the access email, then leave the field. A fresh invitation will be sent to the new address.');}
+function changeInviteEmail(){const i=el('emailSpot');if(!i)return;i.focus();i.select();say('Change the access email, then tap Send Invite. Nothing will be sent automatically.');}
 function readPendingJournal(){const p=P();if(!canManageFamilyInvite(p)){openFamilyShelf(cur);return;}openJournal();}
 async function saveEmail(){
  const p=P();if(!p)return;
  const before=String(p.email||'').trim().toLowerCase();
  const next=String(el('emailSpot').value||'').trim();
  p.email=next;
- if(before!==next.toLowerCase())p.invite_sent_at=null;
+ if(before!==next.toLowerCase()){p.invite_sent_at=null;p.invite_account_route=null;}
  savePeople();
  if(el('inviteEmail'))el('inviteEmail').textContent=p.email||'No access email set';
  if(el('inviteSent'))el('inviteSent').textContent=p.invite_sent_at?new Date(p.invite_sent_at).toLocaleString():'Not sent yet';
  if(el('sendInviteBtn'))el('sendInviteBtn').textContent=p.invite_sent_at?'Resend Invite':'Send Invite';
- if(next&&before!==next.toLowerCase()&&canManageFamilyInvite(p))await sendFamilyInviteForPerson(p,true);
+ // Deliberately do not send here. Exact-address confirmation happens on Send Invite.
 }
 
 /* General project invitation: opens normal sign-in only and grants no family access. */
@@ -1788,8 +2004,9 @@ function renderRemembrance(){var c=el('remembrance');var pr=(P()?P().prayers:[])
 
 // Supabase processes magic-link sessions asynchronously when the page opens.
 // getSession() can run before that URL processing has finished, so listen for the
-// auth event and route the invited person to Create your password as soon as the
-// verified session exists. The async work is deferred out of the callback itself.
+// Supabase processes magic-link sessions asynchronously. Existing-account family
+// invitations must authenticate the account already owned, then show the merge preview
+// without forcing a new password. The async work is deferred out of the callback itself.
 if(supabaseClient){
  supabaseClient.auth.onAuthStateChange(function(event,session){
    if(event!=='INITIAL_SESSION'&&event!=='SIGNED_IN'&&event!=='SIGNED_OUT')return;
@@ -1803,9 +2020,14 @@ if(supabaseClient){
        return;
      }
      if(event==='SIGNED_IN'){
-       await loadCloudForSession();
        bootReady=true;
-       routeHome();
+       if(isFamilyInviteReturn()){
+         routeHome();
+         await beginExistingFamilyMergeReturn();
+       }else{
+         await loadCloudForSession();
+         routeHome();
+       }
      }
    },0);
  });
@@ -1817,8 +2039,8 @@ if(supabaseClient){
  if(supabaseClient){
    try{const s=await supabaseClient.auth.getSession();currentSession=(s.data&&s.data.session)||null;}catch(e){currentSession=null;}
  }
- // A family invitation magic link verifies the email first. Do not load/claim
- // the household shelf until the recipient has deliberately created a password.
+ // A family invitation return must be handled as an invitation/merge first.
+ // Do not run ordinary household bootstrap before the recipient reviews the merge.
  if(currentSession&&!isFamilyInviteReturn())await loadCloudForSession();
  const now=Date.now();people=normalizePeople(people);people.forEach(p=>{if(p.released)p.released=p.released.filter(r=>r.purgeAt>now);});releasedPeople=releasedPeople.filter(r=>r.purgeAt>now);
  await writeLocalCache();
@@ -1831,7 +2053,8 @@ if(supabaseClient){
    if(sl){sl.classList.add('hide');sl.style.display='none';sl.style.pointerEvents='none';}
    if(sw){sw.classList.add('diffuse');sw.style.display='none';sw.style.pointerEvents='none';}
    routeHome();
-   maybeResumeSecretAfterBoot();
+   if(isFamilyInviteReturn())await beginExistingFamilyMergeReturn();
+   else maybeResumeSecretAfterBoot();
  }
  armAppHistory();
 })();
