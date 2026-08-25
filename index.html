@@ -638,7 +638,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
   <div class="mrow"><button class="ghost" onclick="closeModal('personModal')">Cancel</button><button onclick="savePerson()">Save</button></div>
   <div class="mrow2"><button class="ghost danger" onclick="delPerson()">Delete this shelf</button></div>
 </div></div><div class="modal" id="confirmModal"><div class="mbox"><h3 id="cfHead"></h3><p id="cfMsg" style="color:#c9b78f;font-style:italic;margin:0 0 4px"></p><div class="mrow"><button class="ghost" id="cfCancel" onclick="cfNo()">Cancel</button><button class="danger" id="cfYes" onclick="cfYes()">Delete</button></div></div></div>
-<div class="modal" id="familyInviteRouteModal"><div class="mbox"><h3>Send a family invitation</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">You are about to invite <strong id="familyInviteRouteEmail" style="color:#ead6a5"></strong>.</p><p style="color:#c9b78f;margin:0 0 14px;line-height:1.5">Does this person already have their own 90:12 account?</p><div class="mrow" style="flex-wrap:wrap"><button class="ghost" onclick="closeModal('familyInviteRouteModal')">Cancel</button><button onclick="confirmExistingFamilyInvite()">Yes — Existing account</button><button class="ghost" onclick="explainNewFamilyInviteHold()">No — New to 90:12</button></div><p id="familyInviteRouteHelp" style="color:#8f8064;font-size:12px;margin:12px 0 0;line-height:1.45">Existing-account invitations sign the person into the account they already own. They will not be asked to replace their password.</p></div></div>
+<div class="modal" id="familyInviteRouteModal"><div class="mbox"><h3>Send a family invitation</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">You are about to invite <strong id="familyInviteRouteEmail" style="color:#ead6a5"></strong>.</p><p style="color:#c9b78f;margin:0 0 10px;line-height:1.5">Do you know whether this person already has their own 90:12 account?</p><button style="width:100%;margin:2px 0 10px" onclick="confirmUncertainFamilyInvite()">I’m not sure — safest choice</button><div class="mrow" style="flex-wrap:wrap"><button onclick="confirmExistingFamilyInvite()">They already have an account</button><button class="ghost" onclick="explainNewFamilyInviteHold()">They’re new to 90:12</button><button class="ghost" onclick="closeModal('familyInviteRouteModal')">Cancel</button></div><p id="familyInviteRouteHelp" style="color:#8f8064;font-size:12px;margin:12px 0 0;line-height:1.45">If you are not sure, 90:12 uses the safest available path and will not create or replace an account just because the parent guessed wrong.</p></div></div>
 <div class="modal" id="existingMergeModal"><div class="mbox"><h3>Join your family on 90:12?</h3><p id="existingMergeIntro" style="color:#c9b78f;font-style:italic;margin:0 0 12px;line-height:1.5"></p><div style="border:1px solid rgba(203,164,73,.45);border-radius:14px;padding:12px 14px;margin:0 0 12px;text-align:left"><div style="color:#ead6a5;font-weight:600;margin-bottom:6px">Your existing account remains yours.</div><div style="color:#c9b78f;font-size:13px;line-height:1.5">Your existing Journal, Secret Place, prayers, private goals, Waymarks, and other private records are not handed to the household head by joining the family. Only family-visible or deliberately shared material is available to the family.</div></div><div id="existingMergePreview" style="color:#c9b78f;font-size:13px;line-height:1.55;text-align:left;margin:0 0 10px"></div><p id="existingMergeError" style="color:#e0a080;font-size:13px;margin:8px 0 0;line-height:1.45"></p><div class="mrow"><button class="ghost" onclick="declineExistingFamilyMerge()">Not now</button><button id="existingMergeAcceptBtn" onclick="acceptExistingFamilyMerge()">Join family</button></div></div></div>
 <div class="modal" id="inviteHistoryModal"><div class="mbox"><h3 id="inviteHistoryTitle">Invitation History</h3><p id="inviteHistoryLead" style="color:#c9b78f;font-style:italic;margin:0 0 8px;line-height:1.5">Every invitation attempt is kept here while we test the family connection flow.</p><div class="invitehistorylist" id="inviteHistoryList"><div class="invitehistoryempty">Loading invitation history&hellip;</div></div><div class="mrow"><button onclick="closeModal('inviteHistoryModal')">Done</button></div></div></div><div class="modal" id="eraseModal"><div class="mbox">
   <h3 id="eraseHead" style="color:#e0a080;margin:0 0 6px">Delete this account&rsquo;s data?</h3>
@@ -1303,6 +1303,9 @@ function extractInviteToken(data){
 async function prepareFamilyInvitationRpc(p,email,route){
  const base={id:p.id,email:email,route:route};
  const candidates=[
+   // Current production Supabase signature:
+   // app9012_prepare_family_invitation(p_person_id text, p_account_route text)
+   {p_person_id:base.id,p_account_route:base.route},
    {p_person_id:base.id,p_email:base.email,p_account_route:base.route},
    {p_target_person_id:base.id,p_email:base.email,p_account_route:base.route},
    {p_person_id:base.id,p_invitee_email:base.email,p_account_route:base.route},
@@ -1447,11 +1450,23 @@ async function sendFamilyInviteForPerson(p,automatic){
  if(automatic)return false;
  pendingFamilyInvitePersonId=p.id;
  if(el('familyInviteRouteEmail'))el('familyInviteRouteEmail').textContent=email;
- if(el('familyInviteRouteHelp'))el('familyInviteRouteHelp').textContent='Existing-account invitations sign the person into the account they already own. They will not be asked to replace their password.';
+ if(el('familyInviteRouteHelp'))el('familyInviteRouteHelp').textContent='If you are not sure, choose the safest option. This testing build will never create a new account from an uncertain invitation; it only proceeds when it can use the existing-account-safe path.';
  openModal('familyInviteRouteModal');
  return true;
 }
-async function confirmExistingFamilyInvite(){
+async function confirmUncertainFamilyInvite(){
+ const p=people.find(function(x){return x.id===pendingFamilyInvitePersonId;})||P();
+ if(!p)return;
+ // "Not sure" is intentionally fail-closed in this testing build.
+ // It never enables automatic account creation. If the address belongs to an
+ // existing 90:12 account, the existing-account invitation path can proceed.
+ // If it does not, Supabase must refuse the sign-in request and no duplicate
+ // account is created. The future secure new-account claim flow will replace
+ // this hold without changing the parent-facing choice.
+ try{p.invite_route_hint='unsure';savePeople();}catch(e){}
+ return confirmExistingFamilyInvite(true);
+}
+async function confirmExistingFamilyInvite(fromUncertain){
  const p=people.find(function(x){return x.id===pendingFamilyInvitePersonId;})||P();
  if(!p)return;
  const email=String(p.email||'').trim().toLowerCase();
@@ -1471,11 +1486,11 @@ async function confirmExistingFamilyInvite(){
    await recordFamilyInvitationEvent(p,'sent',email,'existing',invitationId,null);
    if(P()===p){if(el('inviteSent'))el('inviteSent').textContent=new Date(p.invite_sent_at).toLocaleString();if(btn)btn.textContent='Resend Invitation';}
    renderFamily();
-   say('Invitation sent to '+email+'. Their existing password will not be changed.');
+   say(fromUncertain?'The invitation was sent using the safest available account path. No password was replaced and no duplicate account was created.':'Invitation sent to '+email+'. Their existing password will not be changed.');
  }catch(err){
    console.error('90:12 existing-account invitation failed:',err);
    await recordFamilyInvitationEvent(p,'failed',email,'existing',invitationId,familyInviteSafeErrorCode(err));
-   say('The invitation could not be prepared safely, so no family connection was made. Please try again.');
+   say(fromUncertain?'90:12 could not safely complete this invitation yet. No new account was created and no family connection was changed.':'The invitation could not be prepared safely, so no family connection was made. Please try again.');
  }finally{if(btn&&P()===p){btn.disabled=false;btn.textContent=p.invite_sent_at?'Resend Invitation':'Send Invitation';}}
 }
 function explainNewFamilyInviteHold(){
@@ -1485,7 +1500,7 @@ function explainNewFamilyInviteHold(){
 async function sendFamilyInvite(automatic){return sendFamilyInviteForPerson(P(),!!automatic);}
 async function resendFamilyInviteFromCard(i){const p=people[i];if(!p)return false;return sendFamilyInviteForPerson(p,false);}
 function invitationHistoryStatusLabel(v){const x=String(v||'').toLowerCase();return ({sent:'Sent',failed:'Failed',cancelled:'Cancelled',expired:'Expired',accepted:'Accepted',prepared:'Prepared'})[x]||'Invitation event';}
-function invitationRouteLabel(v){const x=String(v||'').toLowerCase();if(x==='existing')return 'Existing account';if(x==='new')return 'New account';return '';}
+function invitationRouteLabel(v){const x=String(v||'').toLowerCase();if(x==='existing')return 'Existing account';if(x==='new')return 'New account';if(x==='auto'||x==='unsure'||x==='unknown')return 'Not sure / safely routed';return '';}
 function safeHistoryRows(data){return Array.isArray(data)?data.filter(function(x){return x&&typeof x==='object';}):[];}
 async function getFamilyInvitationHistory(p){
  if(!p||!supabaseClient||!currentSession||cloudMode!=='household')return [];
