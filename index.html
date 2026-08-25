@@ -515,7 +515,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
   <div class="secretwrap">
     <div class="secretback"><button class="ghost" onclick="leaveSecret()">&larr; Leave the Secret Place</button><button class="ghost mini" onclick="replaySecretJourney()">Walk the Journey Again</button></div>
     <div class="secretverse" id="secretVerse"></div>
-    <div class="creamsheet" id="creamsheet"><div class="pagedate" id="pageDate"></div><textarea id="prayerBody" class="pageink" placeholder="Tap the page to write &mdash; or tap the microphone to speak your prayer aloud." oninput="growPage(this)"></textarea><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div><button class="pagemic" id="pageMic" onclick="toggleDictation()" title="Speak">&#127908;</button></div>
+    <div class="creamsheet" id="creamsheet"><div class="pagedate" id="pageDate"></div><textarea id="prayerBody" class="pageink" placeholder="Tap the page to write &mdash; or tap the microphone to speak your prayer aloud." oninput="growPage(this);queueSecretDraftSave()"></textarea><div id="secretDraftStatus" style="min-height:18px;text-align:right;color:#8d816d;font-size:12px;font-style:italic;margin-top:4px"></div><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div><button class="pagemic" id="pageMic" onclick="toggleDictation()" title="Speak">&#127908;</button></div>
     <div class="belowpage">
       <div class="handpick"><span class="handlbl">Handwriting</span><button class="handchip" data-h="spencer" onclick="setHand('spencer')">Spencerian</button><button class="handchip" data-h="vibes" onclick="setHand('vibes')">Elegant</button><button class="handchip" data-h="dancing" onclick="setHand('dancing')">Flowing</button><button class="handchip" data-h="caveat" onclick="setHand('caveat')">Casual</button><button class="handchip" data-h="print" onclick="setHand('print')">Print</button><button class="handchip" data-h="note" onclick="setHand('note')">Note</button><button class="handchip" data-h="neat" onclick="setHand('neat')">Neat</button><button class="handchip" data-h="serif" onclick="setHand('serif')">Serif</button><button class="handchip" data-h="times" onclick="setHand('times')">Times</button></div>
       <label class="prompttoggle"><input type="checkbox" id="promptTog" onchange="togglePrompts()"/> Show prompting questions</label>
@@ -913,7 +913,7 @@ const HOLD=30*864e5;
 function el(id){return document.getElementById(id);}
 let appNavigationReady=false,appHistoryLock=false,appHistoryDepth=0;
 function activeViewId(){const v=document.querySelector('.view.active');return v?v.id:'';}
-function show(id){const before=activeViewId();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewWaymarks','view12Stones','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=(inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp'||id==='viewRecentlyDeleted')?'flex':'none';if(appNavigationReady&&!appHistoryLock&&before&&before!==id){try{appHistoryDepth++;history.pushState(Object.assign({},history.state||{},{app9012View:id,app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}}window.scrollTo({top:0,behavior:'smooth'});}
+function show(id){const before=activeViewId();if(before==='viewSecret'&&id!=='viewSecret'&&typeof clearSecretResumeMarker==='function')clearSecretResumeMarker();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewWaymarks','view12Stones','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=(inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp'||id==='viewRecentlyDeleted')?'flex':'none';if(appNavigationReady&&!appHistoryLock&&before&&before!==id){try{appHistoryDepth++;history.pushState(Object.assign({},history.state||{},{app9012View:id,app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}}window.scrollTo({top:0,behavior:'smooth'});}
 function armAppHistory(){try{appHistoryDepth=Number(history.state&&history.state.app9012Depth)||0;history.replaceState(Object.assign({},history.state||{},{app9012View:activeViewId()||'viewLetter',app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}appNavigationReady=true;}
 function prepareHistoryView(id){if(id==='viewFamily')renderFamily();else if(id==='viewWaymarks')renderWaymarks();else if(id==='view12Stones')render12Stones();else if(id==='viewChart')renderChart();else if(id==='viewJournal')renderJournal();else if(id==='viewRecentlyDeleted')renderRecentlyDeleted();if(['viewJar','viewFamily','viewWaymarks','view12Stones','viewChart'].indexOf(id)>=0)markTabs(id);}
 function appBack(fallback){if(appNavigationReady&&appHistoryDepth>0){history.back();return;}if(fallback==='viewJar')openMyShelf();else show(fallback||'viewJar');}
@@ -1397,14 +1397,53 @@ function encryptedBackupIsValid(data){
  if(data.cipher.name!=='AES-GCM'||data.cipher.length!==256||data.cipher.tagLength!==128)return false;
  try{return base64ToBytes(data.kdf.salt).length>=16&&base64ToBytes(data.cipher.iv).length===12&&base64ToBytes(data.payload).length>=16;}catch(e){return false;}
 }
-function prepareRestore(data,olderUnencrypted){
+function backupPersonForCurrentUser(data){
+ if(!data||!Array.isArray(data.people)||!data.people.length)return null;
+ if(activePersonId){const hit=data.people.find(function(p){return p&&p.id===activePersonId;});if(hit)return hit;}
+ if(currentSession&&currentSession.user){const uid=currentSession.user.id;const hit=data.people.find(function(p){return p&&String(p.linked_user_id||'')===uid;});if(hit)return hit;}
+ return data.people.length===1?data.people[0]:null;
+}
+function restorePreviewLine(label,x){
+ x=x||{};
+ return '<b>'+label+':</b> '+Number(x.restore_missing||0)+' missing recovered, '+Number(x.backup_newer||0)+' newer backup version'+(Number(x.backup_newer||0)===1?'':'s')+' used, '+Number(x.keep_current_cloud||0)+' newer cloud version'+(Number(x.keep_current_cloud||0)===1?'':'s')+' protected, '+Number(x.permanently_deleted_skipped||0)+' permanently deleted skipped.';
+}
+async function prepareRestore(data,olderUnencrypted){
  if(!data||data._app!=='9012'||!Array.isArray(data.people)){say('That file could not be read as a 90:12 keepsake.');return;}
  pendingRestore=data;
+
+ // Signed-in household accounts use server-side Safe Restore. It never replaces
+ // the current household/privacy state and only merges the signed-in person's content.
+ if(currentSession&&supabaseClient&&cloudMode==='household'&&activePersonId){
+   const backupPerson=backupPersonForCurrentUser(data);
+   if(!backupPerson){pendingRestore=null;say('I could not safely identify your shelf inside this backup. Nothing was changed.');return;}
+   try{
+     const r=await supabaseClient.rpc('app9012_preview_safe_restore',{p_backup_person:backupPerson});
+     if(r.error)throw r.error;
+     const x=r.data||{};
+     pendingRestore={mode:'safe',data:data,backupPerson:backupPerson,preview:x,targetPersonId:x.target_person_id||activePersonId};
+     cfStep=1;
+     cfMsg2='Safe Restore will merge only your journal, prayers, goals, and Waymarks. Newer information already in Supabase stays. Permanently deleted records stay deleted. Current family permissions and privacy settings will not be rolled back.';
+     cfConfirm=applyPendingSafeRestore;
+     el('cfHead').textContent='Safe Restore preview';
+     el('cfMsg').innerHTML=(olderUnencrypted?'<b>Older unencrypted backup.</b><br><br>':'')+
+       restorePreviewLine('Journal',x.journal)+'<br>'+restorePreviewLine('Prayers',x.prayers)+'<br>'+restorePreviewLine('Goals',x.goals)+'<br>'+restorePreviewLine('Waymarks',x.waymarks)+'<br><br><b>Nothing newer in Supabase will be removed.</b>';
+     el('cfYes').style.display='';el('cfYes').textContent='Safe Restore';el('cfCancel').textContent='Cancel';
+     openModal('confirmModal');
+     return;
+   }catch(err){
+     console.error('90:12 Safe Restore preview failed:',err);
+     pendingRestore=null;
+     say('Safe Restore could not be previewed. Nothing was changed.');
+     return;
+   }
+ }
+
+ // Legacy/local fallback. Keep this path explicit because it can replace the local snapshot.
  const n=data.people.length;
- cfStep=1;cfMsg2=(olderUnencrypted?'This is an older unencrypted backup. ':'')+'This replaces what is on this device with the backup. To keep what is here too, back it up first, then restore.';cfConfirm=doRestore;
- el('cfHead').textContent='Restore this keepsake?';
- el('cfMsg').textContent='It holds '+n+' shelf'+(n===1?'':'s')+'.'+(olderUnencrypted?' This older file is not password protected.':'');
- el('cfYes').style.display='';el('cfYes').textContent='Restore';el('cfCancel').textContent='Cancel';
+ cfStep=1;cfMsg2=(olderUnencrypted?'This is an older unencrypted backup. ':'')+'This older restore mode replaces the copy on this device and may sync that snapshot. Make a fresh backup first if you need to preserve the current state.';cfConfirm=doLegacyRestore;
+ el('cfHead').textContent='Legacy restore?';
+ el('cfMsg').textContent='It holds '+n+' shelf'+(n===1?'':'s')+'. Safe Restore is available on signed-in household accounts.';
+ el('cfYes').style.display='';el('cfYes').textContent='Legacy Restore';el('cfCancel').textContent='Cancel';
  openModal('confirmModal');
 }
 function restoreData(ev){const file=ev.target.files&&ev.target.files[0];if(!file)return;
@@ -1437,6 +1476,25 @@ async function unlockEncryptedBackup(){
  }catch(err){console.error('90:12 encrypted restore failed:',err);say('That password did not unlock the backup, or the file has been changed.');}
  finally{btn.disabled=false;btn.textContent='Unlock';}
 }
+async function applyPendingSafeRestore(){
+ if(!pendingRestore||pendingRestore.mode!=='safe')return;
+ const job=pendingRestore;pendingRestore=null;
+ try{
+   const r=await supabaseClient.rpc('app9012_apply_safe_restore',{
+     p_backup_person:job.backupPerson,
+     p_confirm_person_id:job.targetPersonId,
+     p_confirmation:'SAFE_RESTORE'
+   });
+   if(r.error)throw r.error;
+   await loadCloudForSession();
+   routeHome();
+   const out=r.data||{};
+   showToast('<span>Safe Restore complete. Journal '+Number(out.journal_after||0)+' · Prayers '+Number(out.prayers_after||0)+' · Goals '+Number(out.goals_after||0)+' · Waymarks '+Number(out.waymarks_after||0)+'.</span>');
+ }catch(err){
+   console.error('90:12 Safe Restore apply failed:',err);
+   say('Safe Restore could not be completed. Nothing should be considered restored until the server confirms success.');
+ }
+}
 async function syncRestoredShelfToCloud(){
  if(!supabaseClient||!currentSession||!people.length)return false;
  try{
@@ -1459,13 +1517,14 @@ async function syncRestoredShelfToCloud(){
  }catch(err){console.error('90:12 restored shelf cloud sync failed:',err);}
  return false;
 }
-async function doRestore(){if(!pendingRestore)return;
- people=normalizePeople(Array.isArray(pendingRestore.people)?pendingRestore.people:[]);
- releasedPeople=Array.isArray(pendingRestore.releasedPeople)?pendingRestore.releasedPeople:[];
+async function doLegacyRestore(){if(!pendingRestore)return;
+ const data=pendingRestore.data||pendingRestore;
+ people=normalizePeople(Array.isArray(data.people)?data.people:[]);
+ releasedPeople=Array.isArray(data.releasedPeople)?data.releasedPeople:[];
  pendingRestore=null;cur=0;await writeLocalCache();
  const synced=await syncRestoredShelfToCloud();
  routeHome();
- showToast(synced?'<span>Your shelf was restored and connected to your account.</span>':'<span>Your shelf was restored in this browser. Cloud connection will need another try.</span>');
+ showToast(synced?'<span>Legacy restore completed and synced.</span>':'<span>Legacy restore completed in this browser. Cloud connection will need another try.</span>');
 }
 
 /* erase everything ─ full account/data wipe, guarded by a typed confirmation */
@@ -1547,7 +1606,7 @@ function goDoorSecret(){closeModal('doorsModal');_scrollRemembrance=false;if(sec
 function goDoorRemembrance(){closeModal('doorsModal');_scrollRemembrance=true;openSecretRoom();}
 var _scrollTo=null,_liftCtx=null;
 function scrollToTarget(){if(!_scrollTo)return;var id=_scrollTo;_scrollTo=null;setTimeout(function(){var t=el(id);if(t){t.scrollIntoView({behavior:'smooth',block:'center'});t.classList.add('flash');setTimeout(function(){t.classList.remove('flash');},1600);}},320);}
-function addJournalEntry(){var b=el('prayerBody').value.trim();if(!b){say('Write your entry first.');return;}var p=P();p.journal=p.journal||[];p.journal.push({id:'j'+Date.now(),date:new Date().toISOString(),body:b,lineage:[],hand:currentHand()});savePeople();el('prayerBody').value='';showToast('<span>Your journal entry is written.</span>');}
+async function addJournalEntry(){var b=el('prayerBody').value.trim();if(!b){say('Write your entry first.');return;}var p=P();p.journal=p.journal||[];p.journal.push({id:'j'+Date.now(),date:new Date().toISOString(),body:b,lineage:[],hand:currentHand(),updated_at:new Date().toISOString()});await savePeople();clearSecretDraft();clearSecretResumeMarker();el('prayerBody').value='';showToast('<span>Your journal entry is written.</span>');}
 function handStyle(hand){var h=hand||(typeof currentHand==='function'?currentHand():'caveat');var map={spencer:["'Pinyon Script',cursive",'24px','38px'],vibes:["'Great Vibes',cursive",'23px','36px'],dancing:["'Dancing Script',cursive",'20px','32px'],caveat:["'Caveat',cursive",'21px','32px'],print:["'Patrick Hand',cursive",'19px','30px'],note:["'Kalam',cursive",'18px','30px'],neat:["'Shadows Into Light Two',cursive",'19px','30px'],serif:["'EB Garamond',serif",'18px','30px'],times:["'Times New Roman',Times,serif",'17px','29px']};var m=map[h]||map.caveat;return 'font-family:'+m[0]+';font-size:'+m[1]+';line-height:'+m[2]+';color:#2a2318;';}
 function lineLabel(k){return k==='prayer'?'\u{1F64F} a prayer was drawn from this':(k==='waymark'?'\u269A a waymark was drawn from this':'\u2693 added to the Captain\u2019s Chart');}
 function jPreview(body){var t=(body||'').replace(/\s+/g,' ').trim();return t.length>140?t.slice(0,138)+'\u2026':t;}
@@ -1614,8 +1673,85 @@ function paintWisdom(){var w=WISDOM[_wIdx];var c=el('wisdomCard');if(!c||!w)retu
 function renderWisdom(){if(!WISDOM.length)return;_wIdx=Math.floor(Math.random()*WISDOM.length);paintWisdom();}
 function nextWisdom(){if(!WISDOM.length)return;_wIdx=(_wIdx+1)%WISDOM.length;paintWisdom();}
 
-function openSecretRoom(){el('secretVerse').innerHTML=SVERSES[Math.floor(Math.random()*SVERSES.length)];el('pageDate').textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});var _pb=el('prayerBody');if(_pb){_pb.value='';_pb.style.height='340px';}applyHand(currentHand());el('aiButtons').style.display='none';el('soloBtn').classList.add('active');el('compBtn').classList.remove('active');el('aiOut').style.display='none';el('promptTog').checked=false;var _pr0=document.querySelector('.promptrow');if(_pr0)_pr0.style.display='none';renderPrayers();renderRemembrance();updateJournalPassControls();markTabs('');show('viewSecret');if(_scrollRemembrance){_scrollRemembrance=false;setTimeout(function(){var r=el('remembrance');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},350);}scrollToTarget();maybeCoach('secret');}
-function leaveSecret(){show('viewJar');markTabs('viewJar');}
+var secretDraftTimer=null;
+function secretDraftKey(){
+ const uid=(currentSession&&currentSession.user&&currentSession.user.id)||'local';
+ const pid=(P()&&P().id)||activePersonId||'person';
+ return '9012_secret_draft_'+uid+'_'+pid;
+}
+function setSecretDraftStatus(msg){var x=el('secretDraftStatus');if(x)x.textContent=msg||'';}
+function writeSecretDraftNow(){
+ clearTimeout(secretDraftTimer);secretDraftTimer=null;
+ const t=el('prayerBody');if(!t)return;
+ const body=t.value||'';
+ try{
+   if(body.trim()){
+     localStorage.setItem(secretDraftKey(),JSON.stringify({body:body,updated_at:new Date().toISOString(),hand:currentHand()}));
+     setSecretDraftStatus('Draft saved \u2713');
+   }else{
+     localStorage.removeItem(secretDraftKey());
+     setSecretDraftStatus('');
+   }
+ }catch(e){setSecretDraftStatus('Draft protection unavailable on this device');}
+}
+function queueSecretDraftSave(){
+ setSecretDraftStatus('Saving draft\u2026');
+ clearTimeout(secretDraftTimer);
+ secretDraftTimer=setTimeout(writeSecretDraftNow,350);
+}
+function readSecretDraft(){
+ try{const raw=localStorage.getItem(secretDraftKey());if(!raw)return null;const d=JSON.parse(raw);return d&&typeof d.body==='string'?d:null;}catch(e){return null;}
+}
+function clearSecretDraft(){
+ clearTimeout(secretDraftTimer);secretDraftTimer=null;
+ try{localStorage.removeItem(secretDraftKey());}catch(e){}
+ setSecretDraftStatus('');
+}
+function secretResumeKey(){
+ const uid=(currentSession&&currentSession.user&&currentSession.user.id)||'local';
+ const pid=activePersonId||(P()&&P().id)||'person';
+ return '9012_secret_resume_'+uid+'_'+pid;
+}
+function markSecretForResume(){
+ if(activeViewId()!=='viewSecret')return;
+ try{localStorage.setItem(secretResumeKey(),JSON.stringify({view:'viewSecret',at:Date.now()}));}catch(e){}
+}
+function clearSecretResumeMarker(){
+ try{localStorage.removeItem(secretResumeKey());}catch(e){}
+}
+function secretResumeRequested(){
+ try{
+   const raw=localStorage.getItem(secretResumeKey());if(!raw)return false;
+   const d=JSON.parse(raw);
+   if(!d||d.view!=='viewSecret'||!Number.isFinite(Number(d.at)))return false;
+   if(Date.now()-Number(d.at)>12*60*60*1000){localStorage.removeItem(secretResumeKey());return false;}
+   return true;
+ }catch(e){return false;}
+}
+function maybeResumeSecretAfterBoot(){
+ if(!currentSession||!activePersonId||!people.length||needsPasswordSetup())return false;
+ if(!secretResumeRequested())return false;
+ clearSecretResumeMarker();
+ const i=people.findIndex(function(p){return p.id===activePersonId;});
+ if(i>=0)cur=i;
+ openSecretRoom();
+ setTimeout(function(){var t=el('prayerBody');if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(e){}}},120);
+ return true;
+}
+function restoreSecretDraft(){
+ const t=el('prayerBody');if(!t)return false;
+ const d=readSecretDraft();
+ if(d&&d.body){t.value=d.body;growPage(t);if(d.hand)applyHand(d.hand);setSecretDraftStatus('Recovered your draft \u2713');return true;}
+ t.value='';t.style.height='340px';setSecretDraftStatus('');return false;
+}
+document.addEventListener('visibilitychange',function(){
+ if(document.visibilityState==='hidden'){writeSecretDraftNow();markSecretForResume();return;}
+ if(document.visibilityState==='visible'&&activeViewId()==='viewSecret'){clearSecretResumeMarker();setTimeout(function(){var t=el('prayerBody');if(t)t.focus();},60);}
+});
+window.addEventListener('pagehide',function(){writeSecretDraftNow();markSecretForResume();});
+
+function openSecretRoom(){el('secretVerse').innerHTML=SVERSES[Math.floor(Math.random()*SVERSES.length)];el('pageDate').textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});var _pb=el('prayerBody');if(_pb){restoreSecretDraft();}applyHand(currentHand());el('aiButtons').style.display='none';el('soloBtn').classList.add('active');el('compBtn').classList.remove('active');el('aiOut').style.display='none';el('promptTog').checked=false;var _pr0=document.querySelector('.promptrow');if(_pr0)_pr0.style.display='none';renderPrayers();renderRemembrance();updateJournalPassControls();markTabs('');show('viewSecret');if(_scrollRemembrance){_scrollRemembrance=false;setTimeout(function(){var r=el('remembrance');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},350);}scrollToTarget();maybeCoach('secret');}
+function leaveSecret(){clearSecretResumeMarker();show('viewJar');markTabs('viewJar');}
 function setCompanion(on){el('aiButtons').style.display=on?'flex':'none';el('compBtn').classList.toggle('active',on);el('soloBtn').classList.toggle('active',!on);if(!on)el('aiOut').style.display='none';}
 function growPage(t){t.style.height="auto";t.style.height=Math.max(340,t.scrollHeight)+"px";}
 function usePrompt(){var t=el("prayerBody"),p=el("promptBox").textContent;if(p){t.value=(t.value?t.value+"\n":"")+p+"\n";growPage(t);t.focus();}}
@@ -1634,7 +1770,7 @@ function toggleDictation(){var SR=window.SpeechRecognition||window.webkitSpeechR
  try{_rec.start();_recOn=true;m.classList.add('rec');}catch(err){_recOn=false;m.classList.remove('rec');t.focus();}}
 function giveScripture(){var o=el('aiOut');o.innerHTML=SCOMFORT[_scIdx%SCOMFORT.length];_scIdx++;o.style.display='block';}
 function pointSpiritually(){var o=el('aiOut');o.innerHTML='In the full version, this offers deeper, Word-anchored counsel &mdash; drawing on trusted voices like Charles Spurgeon &mdash; for whatever you are walking through. For now: you are not alone. Bring it to God plainly, stand on His Word, and if it is heavy, tell someone you trust. &ldquo;Cast all your care upon him; for he careth for you.&rdquo; (1 Peter 5:7)';o.style.display='block';}
-function addPrayer(){var b=el('prayerBody').value.trim();if(!b){say('Write your prayer first.');return;}var _now=new Date().toISOString();P().prayers.push({id:'pr'+Date.now(),body:b,date:_now,timesPrayed:1,prayedDates:[_now],answered:false,answeredDate:null,answerNote:''});savePeople();el('prayerBody').value='';renderPrayers();}
+async function addPrayer(){var b=el('prayerBody').value.trim();if(!b){say('Write your prayer first.');return;}var _now=new Date().toISOString();P().prayers.push({id:'pr'+Date.now(),body:b,date:_now,updated_at:_now,timesPrayed:1,prayedDates:[_now],answered:false,answeredDate:null,answerNote:''});await savePeople();clearSecretDraft();clearSecretResumeMarker();el('prayerBody').value='';renderPrayers();showToast('<span>Your prayer is laid down.</span>');}
 function prayedAgain(id){var p=P().prayers.find(function(x){return x.id===id;});if(p){p.timesPrayed=(p.timesPrayed||1)+1;p.prayedDates=p.prayedDates||[p.date];p.prayedDates.push(new Date().toISOString());savePeople();renderPrayers();}}
 var answering=null;
 function markAnswered(id){answering=id;el('answerNote').value='';openModal('answerModal');}
@@ -1695,6 +1831,7 @@ if(supabaseClient){
    if(sl){sl.classList.add('hide');sl.style.display='none';sl.style.pointerEvents='none';}
    if(sw){sw.classList.add('diffuse');sw.style.display='none';sw.style.pointerEvents='none';}
    routeHome();
+   maybeResumeSecretAfterBoot();
  }
  armAppHistory();
 })();
