@@ -432,6 +432,13 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
       <section class="fspanel wide"><h2>Messages</h2><div class="fsmessages" id="fsMessages"><p>Loading family messages&hellip;</p></div><button class="fsmessage" onclick="openFamilyMessageModalForShelf()">Leave a Message</button></section>
       <section class="fspanel wide"><h2>Family Photo Album</h2><p>Family-visible photos from Waymarks, the Captain&rsquo;s Chart, Gold Nuggets, Life Lessons, Family Rules, and other shared memories gather here chronologically.</p><button class="ghost fsviewall photohubbtn" onclick="openFamilyPhotoAlbum()">Open Family Photo Album</button></section>
     </div>
+    <section class="projectinvite" id="familyShelfConnectInvite" aria-labelledby="familyShelfConnectInviteTitle" style="display:none">
+      <div class="inviteeyebrow">Family connection</div>
+      <h2 id="familyShelfConnectInviteTitle">Invite this family member to connect</h2>
+      <p id="familyShelfConnectInviteLead">A connected family member may send the secure invitation already tied to this shelf. Sending it does not give you access to their private Journal, Secret Place, prayers, goals, or account settings.</p>
+      <button id="familyShelfConnectInviteBtn" type="button" onclick="sendFamilyConnectionInviteFromShelf()">Send family invitation</button>
+      <div class="inviteprivacy">The invitation goes only to the access email already saved on this family profile. You cannot change that email from the Family Shelf.</div>
+    </section>
     <section class="projectinvite" aria-labelledby="familyShelfProjectInviteTitle">
       <div class="inviteeyebrow">Share 90:12</div>
       <h2 id="familyShelfProjectInviteTitle">Invite someone to begin their own legacy</h2>
@@ -699,7 +706,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
   <div class="mrow"><button class="ghost" onclick="closeModal('personModal')">Cancel</button><button onclick="savePerson()">Save</button></div>
   <div class="mrow2"><button class="ghost danger" onclick="delPerson()">Delete this shelf</button></div>
 </div></div><div class="modal" id="confirmModal"><div class="mbox"><h3 id="cfHead"></h3><p id="cfMsg" style="color:#c9b78f;font-style:italic;margin:0 0 4px"></p><div class="mrow"><button class="ghost" id="cfCancel" onclick="cfNo()">Cancel</button><button class="danger" id="cfYes" onclick="cfYes()">Delete</button></div></div></div>
-<div class="modal" id="familyInviteRouteModal"><div class="mbox"><h3>Send a family invitation</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">You are about to invite <strong id="familyInviteRouteEmail" style="color:#ead6a5"></strong>.</p><p style="color:#c9b78f;margin:0 0 10px;line-height:1.5">Do you know whether this person already has their own 90:12 account?</p><button style="width:100%;margin:2px 0 10px" onclick="confirmUncertainFamilyInvite()">I’m not sure — safest choice</button><div class="mrow" style="flex-wrap:wrap"><button onclick="confirmExistingFamilyInvite()">They already have an account</button><button class="ghost" onclick="explainNewFamilyInviteHold()">They’re new to 90:12</button><button class="ghost" onclick="closeModal('familyInviteRouteModal')">Cancel</button></div><p id="familyInviteRouteHelp" style="color:#8f8064;font-size:12px;margin:12px 0 0;line-height:1.45">If you are not sure, 90:12 uses the safest available path and will not create or replace an account just because the parent guessed wrong.</p></div></div>
+<div class="modal" id="familyInviteRouteModal"><div class="mbox"><h3>Send a family invitation</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">You are about to invite <strong id="familyInviteRouteEmail" style="color:#ead6a5"></strong>.</p><p style="color:#c9b78f;margin:0 0 10px;line-height:1.5">Do you know whether this person already has their own 90:12 account?</p><button style="width:100%;margin:2px 0 10px" onclick="confirmUncertainFamilyInvite()">I’m not sure — safest choice</button><div class="mrow" style="flex-wrap:wrap"><button onclick="confirmExistingFamilyInvite()">They already have an account</button><button class="ghost" onclick="explainNewFamilyInviteHold()">They’re new to 90:12</button><button class="ghost" onclick="closeModal('familyInviteRouteModal')">Cancel</button></div><p id="familyInviteRouteHelp" style="color:#8f8064;font-size:12px;margin:12px 0 0;line-height:1.45">If you are not sure, 90:12 uses the safest available path and will not create or replace an account just because the inviter guessed wrong.</p></div></div>
 <div class="modal" id="existingMergeModal"><div class="mbox"><h3>Join your family on 90:12?</h3><p id="existingMergeIntro" style="color:#c9b78f;font-style:italic;margin:0 0 12px;line-height:1.5"></p><div style="border:1px solid rgba(203,164,73,.45);border-radius:14px;padding:12px 14px;margin:0 0 12px;text-align:left"><div style="color:#ead6a5;font-weight:600;margin-bottom:6px">Your existing account remains yours.</div><div style="color:#c9b78f;font-size:13px;line-height:1.5">Your existing Journal, Secret Place, prayers, private goals, Waymarks, and other private records are not handed to the household head by joining the family. Only family-visible or deliberately shared material is available to the family.</div></div><div id="existingMergePreview" style="color:#c9b78f;font-size:13px;line-height:1.55;text-align:left;margin:0 0 10px"></div><p id="existingMergeError" style="color:#e0a080;font-size:13px;margin:8px 0 0;line-height:1.45"></p><div class="mrow"><button class="ghost" onclick="declineExistingFamilyMerge()">Not now</button><button id="existingMergeAcceptBtn" onclick="acceptExistingFamilyMerge()">Join family</button></div></div></div>
 <div class="modal" id="inviteHistoryModal"><div class="mbox"><h3 id="inviteHistoryTitle">Invitation History</h3><p id="inviteHistoryLead" style="color:#c9b78f;font-style:italic;margin:0 0 8px;line-height:1.5">Every invitation attempt is kept here while we test the family connection flow.</p><div class="invitehistorylist" id="inviteHistoryList"><div class="invitehistoryempty">Loading invitation history&hellip;</div></div><div class="mrow"><button onclick="closeModal('inviteHistoryModal')">Done</button></div></div></div>
 <div class="modal" id="familyMessageModal"><div class="mbox"><h3>Leave a Family Shelf message</h3><label for="familyMessageModalTo" style="display:block;text-align:left;margin:0 0 6px">To</label><select id="familyMessageModalTo" style="width:100%;margin:0 0 10px"></select><label for="familyMessageModalText" style="display:block;text-align:left;margin:0 0 6px">Message</label><textarea id="familyMessageModalText" placeholder="What do you want them to carry with them?"></textarea><div class="mrow"><button class="ghost" onclick="closeModal('familyMessageModal')">Cancel</button><button id="familyMessageModalSend" onclick="sendFamilyMessageModal()">Send</button></div></div></div>
@@ -1191,6 +1198,7 @@ function openFamilyShelf(i){
  const viewAll=el('fsViewAllWaymarks');viewAll.style.display='block';viewAll.textContent=waymarks.length?'Open Family Waymarks ('+waymarks.length+')':'Open Family Waymarks';
  const sharedPrayers=familySharedPrayers(p);el('fsSharedPrayers').innerHTML=sharedPrayers.length?sharedPrayers.slice(0,2).map(function(pr){return '<div class="fsprayerpreview">'+esc(sharedPrayerText(pr))+'</div>';}).join(''):'<p>No prayers have been shared with the family yet.</p>';const prayerButton=el('fsViewAllPrayers');prayerButton.textContent=sharedPrayers.length?'View Shared Prayers ('+sharedPrayers.length+')':'Open Shared Prayers';
  const sharedGoals=familySharedGoals(p);el('fsSharedGoals').innerHTML=sharedGoals.length?sharedGoals.slice(0,2).map(function(goal){return '<div class="fsgoalpreview"><strong>'+esc(sharedGoalTitle(goal))+'</strong><span>'+esc(sharedGoalStatus(goal))+'</span></div>';}).join(''):'<p>No goals have been shared with the family yet.</p>';const goalButton=el('fsViewAllGoals');goalButton.textContent=sharedGoals.length?'Open Shared Goals ('+sharedGoals.length+')':'Open Shared Goals';
+ refreshFamilyShelfConnectionInvite(p);
  loadFamilyShelfMessages(p);
  markTabs('');show('viewFamilyShelf');
 }
@@ -1715,7 +1723,29 @@ function canManageFamilyInvite(p){
  const s=familyConnectionStatus(p);
  return !!(s&&s.kind==='pending'&&(householdRole==='head'||householdRole==='spouse_parent'));
 }
+// Sending a connection invitation is deliberately narrower than managing a shelf.
+// Any already-connected household member may send the secure invitation for another
+// pending profile in the same household. The server chooses the authoritative access
+// email; this permission does not grant editing or private-shelf access.
+function canSendFamilyConnectionInvite(p){
+ if(!p||!currentSession||!supabaseClient||cloudMode!=='household')return false;
+ if(p.id===activePersonId)return false;
+ const s=familyConnectionStatus(p);
+ return !!(s&&s.kind==='pending');
+}
+function refreshFamilyShelfConnectionInvite(p){
+ const box=el('familyShelfConnectInvite'),btn=el('familyShelfConnectInviteBtn'),title=el('familyShelfConnectInviteTitle'),lead=el('familyShelfConnectInviteLead');
+ if(!box)return;
+ const allowed=canSendFamilyConnectionInvite(p);
+ box.style.display=allowed?'block':'none';
+ if(!allowed)return;
+ const name=(p&&p.name)||'this family member';
+ if(title)title.textContent='Invite '+name+' to connect';
+ if(lead)lead.textContent='You can send '+name+' the secure family invitation without gaining access to their private Journal, Secret Place, prayers, goals, or account settings.';
+ if(btn){btn.disabled=false;btn.textContent=p&&p.invite_sent_at?'Resend family invitation':'Send family invitation';}
+}
 let pendingFamilyInvitePersonId=null;
+let familyInviteSenderMode='manager'; // manager | family
 let pendingExistingMergePreview=null;
 let existingMergeBusy=false;
 // Prevent the same invitation return from being previewed twice during one page load.
@@ -1941,9 +1971,20 @@ async function sendFamilyInviteForPerson(p,automatic){
  // Never auto-send after an email edit or person creation. The manager must review
  // the exact address and deliberately choose the account route.
  if(automatic)return false;
+ familyInviteSenderMode='manager';
  pendingFamilyInvitePersonId=p.id;
  if(el('familyInviteRouteEmail'))el('familyInviteRouteEmail').textContent=email;
  if(el('familyInviteRouteHelp'))el('familyInviteRouteHelp').textContent='If you are not sure, choose the safest option. This testing build will never create a new account from an uncertain invitation; it only proceeds when it can use the existing-account-safe path.';
+ openModal('familyInviteRouteModal');
+ return true;
+}
+async function sendFamilyConnectionInviteFromShelf(){
+ const p=people[familyShelfPersonIndex];
+ if(!canSendFamilyConnectionInvite(p)){say('This family connection is not available for an invitation.');return false;}
+ familyInviteSenderMode='family';
+ pendingFamilyInvitePersonId=p.id;
+ if(el('familyInviteRouteEmail'))el('familyInviteRouteEmail').textContent=(p.name||'This family member')+' — using the access email already saved on their family profile';
+ if(el('familyInviteRouteHelp'))el('familyInviteRouteHelp').textContent="You can send this invitation, but you cannot change the destination email or gain access to this person's private shelf. If you are not sure whether they already have an account, choose the safest option.";
  openModal('familyInviteRouteModal');
  return true;
 }
@@ -1956,35 +1997,47 @@ async function confirmUncertainFamilyInvite(){
  // If it does not, Supabase must refuse the sign-in request and no duplicate
  // account is created. The future secure new-account claim flow will replace
  // this hold without changing the parent-facing choice.
- try{p.invite_route_hint='unsure';savePeople();}catch(e){}
+ if(familyInviteSenderMode==='manager'){try{p.invite_route_hint='unsure';savePeople();}catch(e){}}
  return confirmExistingFamilyInvite(true);
 }
 async function confirmExistingFamilyInvite(fromUncertain){
  const p=people.find(function(x){return x.id===pendingFamilyInvitePersonId;})||P();
  if(!p)return;
- const email=String(p.email||'').trim().toLowerCase();
- if(!validInviteEmail(email)){closeModal('familyInviteRouteModal');say('Add a valid access email first.');return;}
- const btn=el('sendInviteBtn');
+ const clientEmail=String(p.email||'').trim().toLowerCase();
+ if(familyInviteSenderMode==='manager'&&!validInviteEmail(clientEmail)){closeModal('familyInviteRouteModal');say('Add a valid access email first.');return;}
+ const managerBtn=el('sendInviteBtn');
+ const familyBtn=el('familyShelfConnectInviteBtn');
  let invitationId=null;
+ let deliveryEmail=clientEmail;
  closeModal('familyInviteRouteModal');
- if(btn&&P()===p){btn.disabled=true;btn.textContent='Preparing\u2026';}
+ if(familyInviteSenderMode==='manager'&&managerBtn&&P()===p){managerBtn.disabled=true;managerBtn.textContent='Preparing\u2026';}
+ if(familyInviteSenderMode==='family'&&familyBtn){familyBtn.disabled=true;familyBtn.textContent='Preparing\u2026';}
  try{
-   const prep=await prepareFamilyInvitationRpc(p,email,'existing');
+   const prep=await prepareFamilyInvitationRpc(p,clientEmail,'existing');
+   const prepared=firstObject(prep.data);
    invitationId=extractInvitationId(prep.data)||null;
    const token=extractInviteToken(prep.data);
+   deliveryEmail=String(prepared.target_email||clientEmail||'').trim().toLowerCase();
    if(!token)throw new Error('The invitation server did not return a one-time invitation token.');
-   const r=await supabaseClient.auth.signInWithOtp({email:email,options:{shouldCreateUser:false,emailRedirectTo:familyInviteRedirectUrl(token,'existing')}});
+   if(!validInviteEmail(deliveryEmail))throw new Error('The invitation server did not return a valid destination email.');
+   const r=await supabaseClient.auth.signInWithOtp({email:deliveryEmail,options:{shouldCreateUser:false,emailRedirectTo:familyInviteRedirectUrl(token,'existing')}});
    if(r.error)throw r.error;
-   p.invite_sent_at=new Date().toISOString();p.invite_account_route='existing';savePeople();
-   await recordFamilyInvitationEvent(p,'sent',email,'existing',invitationId,null);
-   if(P()===p){if(el('inviteSent'))el('inviteSent').textContent=new Date(p.invite_sent_at).toLocaleString();if(btn)btn.textContent='Resend Invitation';}
+   p.invite_sent_at=new Date().toISOString();p.invite_account_route='existing';
+   if(familyInviteSenderMode==='manager')savePeople();
+   await recordFamilyInvitationEvent(p,'sent',deliveryEmail,'existing',invitationId,null);
+   if(familyInviteSenderMode==='manager'&&P()===p){if(el('inviteSent'))el('inviteSent').textContent=new Date(p.invite_sent_at).toLocaleString();if(managerBtn)managerBtn.textContent='Resend Invitation';}
+   if(familyInviteSenderMode==='family'&&familyBtn)familyBtn.textContent='Resend family invitation';
    renderFamily();
-   say(fromUncertain?'The invitation was sent using the safest available account path. No password was replaced and no duplicate account was created.':'Invitation sent to '+email+'. Their existing password will not be changed.');
+   if(familyInviteSenderMode==='family')refreshFamilyShelfConnectionInvite(p);
+   say(fromUncertain?'The invitation was sent using the safest available account path. No password was replaced and no duplicate account was created.':(familyInviteSenderMode==='family'?'Family invitation sent using the access email already saved on this profile. No private-shelf access was granted.':'Invitation sent to '+deliveryEmail+'. Their existing password will not be changed.'));
  }catch(err){
    console.error('90:12 existing-account invitation failed:',err);
-   await recordFamilyInvitationEvent(p,'failed',email,'existing',invitationId,familyInviteSafeErrorCode(err));
+   await recordFamilyInvitationEvent(p,'failed',deliveryEmail||null,'existing',invitationId,familyInviteSafeErrorCode(err));
    say(fromUncertain?'90:12 could not safely complete this invitation yet. No new account was created and no family connection was changed.':'The invitation could not be prepared safely, so no family connection was made. Please try again.');
- }finally{if(btn&&P()===p){btn.disabled=false;btn.textContent=p.invite_sent_at?'Resend Invitation':'Send Invitation';}}
+ }finally{
+   if(familyInviteSenderMode==='manager'&&managerBtn&&P()===p){managerBtn.disabled=false;managerBtn.textContent=p.invite_sent_at?'Resend Invitation':'Send Invitation';}
+   if(familyInviteSenderMode==='family'&&familyBtn){familyBtn.disabled=false;familyBtn.textContent=p.invite_sent_at?'Resend family invitation':'Send family invitation';}
+ }
 }
 function explainNewFamilyInviteHold(){
  closeModal('familyInviteRouteModal');
