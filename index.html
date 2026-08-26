@@ -1718,6 +1718,9 @@ function canManageFamilyInvite(p){
 let pendingFamilyInvitePersonId=null;
 let pendingExistingMergePreview=null;
 let existingMergeBusy=false;
+// Prevent the same invitation return from being previewed twice during one page load.
+// Both getSession() boot and onAuthStateChange() may notice the same magic-link session.
+let existingMergePreviewKey='';
 
 function familyInviteToken(){
  try{return (new URLSearchParams(location.search).get('invite')||'').trim();}catch(e){return '';}
@@ -1827,6 +1830,11 @@ function previewHouseholdLabel(d){
  d=firstObject(d);
  return d.household_name||d.target_household_name||d.family_name||'';
 }
+function existingMergeBlockReason(d){
+ d=firstObject(d);
+ const raw=d.block_reason||d.merge_block_reason||d.reason||d.merge_reason||d.message||d.detail||d.code||'';
+ return typeof raw==='string'?raw.trim():'';
+}
 function showExistingMergePreview(data){
  pendingExistingMergePreview=data;
  const d=firstObject(data);
@@ -1850,11 +1858,22 @@ function showExistingMergePreview(data){
  const allowed=canServerPreviewMerge(d);
  const err=el('existingMergeError'),btn=el('existingMergeAcceptBtn');
  if(btn){btn.disabled=!allowed;btn.style.opacity=allowed?'1':'.45';btn.textContent='Join family';}
- if(err)err.textContent=allowed?'':'90:12 stopped this merge because the server preview found a safety condition. Nothing has been changed.';
+ if(err){
+   if(allowed)err.textContent='';
+   else{
+     const reason=existingMergeBlockReason(d);
+     err.textContent='90:12 stopped this merge because the server preview found a safety condition. Nothing has been changed.'+(reason?(' Server reason: '+reason):'');
+   }
+ }
  openModal('existingMergeModal');
 }
 async function beginExistingFamilyMergeReturn(){
  if(!isFamilyInviteReturn()||!currentSession||!supabaseClient)return false;
+ // The same magic-link return can be observed by both auth-state and normal boot.
+ // Handle a given invitation only once so "Not now" cannot be undone by a second preview.
+ const previewKey=familyInviteToken()||('invite:'+familyInviteRoute()+':'+location.pathname+location.search);
+ if(existingMergePreviewKey===previewKey)return false;
+ existingMergePreviewKey=previewKey;
  // Only the existing-account route is enabled in this build. Old familyInvite links
  // with no route are treated as existing-account links so they never force a password.
  if(familyInviteRoute()==='new'){
