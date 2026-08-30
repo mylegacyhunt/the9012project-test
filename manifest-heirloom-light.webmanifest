@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "90:12 — Number Our Days",
+  "short_name": "90:12",
+  "description": "Preserve your family memories, one meaningful moment at a time.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5eddf",
+  "theme_color": "#f5eddf",
+  "icons": [
+    {
+      "src": "assets/app-icons/heirloom-light-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/app-icons/heirloom-light-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
