@@ -40,27 +40,60 @@
 #signOutStatus{color:#efd18e;}
 /* END SIGN OUT UI */
 /* EXPLORE 9012 UI */
-.projecttools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
-.projecttools .accountbar{margin:0;}
-.projecttools button{min-height:44px;}
-.projecttools .exploretrigger{color:#ead6a5;border-color:#8c713b;padding:10px 18px;}
-.guidedialog{width:min(720px,calc(100% - 24px));max-height:90vh;max-height:90dvh;margin:auto;padding:0;border:1px solid #8c713b;border-radius:18px;background:#21190f;color:#e8dcc8;box-shadow:0 20px 70px #0008;font-family:'EB Garamond',Georgia,serif;}
+.projecttools{display:flex;align-items:center;gap:10px;margin-bottom:18px;min-height:44px;}
+.projecttools[hidden],.quickwaymark[hidden]{display:none!important;}
+.projecttools .exploretrigger{min-height:44px;color:#ead6a5;border-color:#8c713b;padding:10px 18px;}
+.quickwaymark{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,calc((100vw - 900px)/2 + 16px));z-index:90;min-height:48px;padding:12px 20px;border:1px solid #e5c983;border-radius:28px;background:linear-gradient(135deg,#e6c77d,#b9903c);color:#24190c;font:600 17px 'EB Garamond',Georgia,serif;box-shadow:0 4px 20px #0005;touch-action:manipulation;}
+.project-guide-inside .wrap>.brand{min-height:48px;padding-right:150px;text-align:left;letter-spacing:.16em;display:flex;align-items:center;}
+#waymarkWriter9012{scroll-margin-top:84px;}
+.accountbar.accountfooter{justify-content:center;margin:28px 0 0;padding:20px 0 4px;border-top:1px solid #8c713b55;}
+.guidedialog{width:min(820px,calc(100% - 24px));max-height:90vh;max-height:90dvh;margin:auto;padding:0;border:1px solid #8c713b;border-radius:20px;background:#21190f;color:#e8dcc8;box-shadow:0 20px 70px #0008;font-family:'EB Garamond',Georgia,serif;}
 .guidedialog[open]{display:flex;flex-direction:column;}
 .guidedialog::backdrop{background:#080604b8;}
-.guideheader{display:flex;align-items:center;justify-content:space-between;gap:18px;flex:none;padding:20px 24px;border-bottom:1px solid #8c713b66;}
-.guideheader h2{margin:0;font-size:26px;line-height:1.15;color:#ead6a5;}
+.guideheader{display:flex;align-items:center;justify-content:space-between;gap:18px;flex:none;padding:20px 26px;border-bottom:1px solid #8c713b66;}
+.guideheader h2{margin:0;font-size:28px;line-height:1.15;color:#ead6a5;}
 .guideheader button{min-height:44px;flex:none;padding:10px 18px;}
-.guidebody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:18px 24px 24px;}
-.guideintro{margin:0 0 14px;color:#c9b78f;font-size:16px;line-height:1.5;}
-.guidegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;list-style:none;padding:0;margin:0;counter-reset:guide;}
-.guideitem{counter-increment:guide;position:relative;min-width:0;padding:12px 12px 12px 40px;border:1px solid #8c713b55;border-radius:10px;background:#19130c;}
-.guideitem::before{content:counter(guide,decimal-leading-zero);position:absolute;top:15px;left:12px;font-size:11px;color:#b69b60;}
-.guideitem h3{margin:0 0 3px;font-size:19px;line-height:1.2;color:#ead6a5;}
-.guideitem p{margin:0;font-size:15px;line-height:1.4;color:#d7c8ae;}
-.guideitem:last-child{grid-column:1/-1;border-color:#b69b6080;}
-.guidefoot{margin:16px 0 0;padding-top:14px;border-top:1px solid #8c713b66;font-size:15px;line-height:1.5;color:#c9b78f;}
-.guidedialog button:focus-visible,.exploretrigger:focus-visible{outline:2px solid #e6c978;outline-offset:4px;}
-@media(max-width:560px){.guidegrid{grid-template-columns:1fr;}.guideheader{padding:14px;gap:10px;}.guideheader h2{font-size:24px;}.guidebody{padding:14px;}}
+.guidebody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px 26px 26px;}
+.guideintro{margin:0 0 18px;font-size:18px;line-height:1.5;color:#e0d3bc;}
+.guidestart{padding:18px 20px;margin-bottom:26px;border-left:3px solid #d2b46c;border-radius:0 12px 12px 0;background:#302416;}
+.guidestart h3{margin:0 0 6px;font-size:23px;color:#f0dca7;}
+.guidestart p{margin:0;font-size:17px;line-height:1.5;}
+.guidegroup{margin-top:28px;}
+.guidegrouphead{display:flex;align-items:baseline;gap:10px;margin-bottom:7px;}
+.guidegrouphead span{color:#c3a668;font-size:12px;letter-spacing:.12em;}
+.guidegroup h3{margin:0;font-size:25px;line-height:1.2;color:#f0dca7;}
+.guidegroupintro{margin:0 0 14px;font-size:16px;line-height:1.5;color:#c9bda8;}
+.guidegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:0;}
+.guidegrid-single{grid-template-columns:1fr;}
+.guideitem{min-width:0;padding:17px 18px;border:1px solid #8c713b55;border-radius:12px;background:#19130c;}
+.guideitem h4{margin:0 0 3px;font-size:22px;line-height:1.2;color:#f0dca7;}
+.guideitem .guidetagline{margin:0 0 10px;font-size:15px;color:#d4b976;}
+.guideitem .guidehelp{margin:0;font-size:17px;line-height:1.5;color:#e0d3bd;}
+.guideitem .guideexample{margin:10px 0 0;font-size:15px;line-height:1.4;color:#bfb19a;font-style:italic;}
+.guideitem .guideplanned{margin:12px 0 0;padding-top:10px;border-top:1px dashed #947744;font-size:15px;line-height:1.4;color:#d3c3a3;}
+.guideplanned strong{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#e2c686;}
+.guidefoot{margin:24px 0 0;padding-top:18px;border-top:1px solid #8c713b66;font-size:16px;line-height:1.5;color:#c9bda8;}
+.guideflow{margin-top:24px;border:1px solid #a68a50;border-radius:12px;background:#19130c;}
+.guideflow>summary{padding:17px 18px;min-height:48px;cursor:pointer;font-size:20px;line-height:1.3;color:#efd99d;}
+.guideflow[open]>summary{border-bottom:1px solid #8c713b55;}
+.guideflowbody{padding:18px;}
+.guideflowintro{font-size:16px;line-height:1.5;margin:0 0 18px;color:#d3c3a3;}
+.flowroot,.flowcapture,.flowtreasure{padding:15px;border:1px solid #b09253;border-radius:10px;text-align:center;}
+.flowroot{background:#3a2a16;}
+.flowroot strong,.flowcapture strong,.flowtreasure strong{display:block;font-size:23px;color:#efd99d;}
+.flowroot span,.flowcapture span,.flowtreasure span{display:block;margin-top:5px;font-size:16px;line-height:1.4;}
+.flowarrow{text-align:center;font-size:24px;color:#d0ae62;margin:5px 0;}
+.flowbranches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.flowbranch{padding:14px;border:1px solid #8c713b77;border-radius:10px;min-width:0;}
+.flowbranch h4{margin:0 0 9px;font-size:20px;color:#efd99d;}
+.flowbranch ul{padding-left:18px;margin:0;font-size:16px;line-height:1.5;}
+.flowbranch p{font-size:15px;line-height:1.4;color:#c9bda8;margin:10px 0 0;}
+.flowplanned{border-style:dashed!important;}
+.flowconnections{margin:18px 0;padding-left:20px;font-size:16px;line-height:1.5;}
+.flowconnections li+li{margin-top:9px;}
+.flowlegend{font-size:14px;line-height:1.5;color:#c9bda8;margin:14px 0 0;}
+.guidedialog button:focus-visible,.guideflow>summary:focus-visible,.exploretrigger:focus-visible,.quickwaymark:focus-visible{outline:2px solid #f4daa0;outline-offset:4px;}
+@media(max-width:560px){.guidegrid,.flowbranches{grid-template-columns:1fr;}.guideheader{padding:15px;gap:10px;}.guideheader h2{font-size:25px;}.guidebody{padding:18px 15px;}.guideitem{padding:16px;}.guidegroup h3{font-size:23px;}.guideflowbody{padding:14px;}.quickwaymark{right:12px;padding:12px 17px;}.project-guide-inside .wrap>.brand{font-size:10px;padding-right:134px;letter-spacing:.1em;}}
 /* END EXPLORE 9012 UI */
 .view{display:none;} .view.active{display:block;animation:fade .5s ease;}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -446,32 +479,89 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
 <dialog class="guidedialog" id="appGuideDialog" aria-labelledby="appGuideTitle" aria-describedby="appGuideIntro" onkeydown="if(event.key==='Escape'){event.preventDefault();close9012Guide();}">
   <div class="guideheader"><h2 id="appGuideTitle">Explore 90:12</h2><button type="button" class="ghost" aria-label="Close Explore 90:12 guide" onclick="close9012Guide()" autofocus>Close</button></div>
   <div class="guidebody" id="appGuideBody">
-    <p class="guideintro" id="appGuideIntro">A simple guide to the names and meaning of each part of your legacy.</p>
-    <ol class="guidegrid" role="list">
-      <li class="guideitem"><h3>Waymarks</h3><p>Mark the Journey</p></li>
-      <li class="guideitem"><h3>Palace Beautiful</h3><p>Treasures Worth Revisiting</p></li>
-      <li class="guideitem"><h3>Balm of Gladness</h3><p>Laughter Worth Remembering</p></li>
-      <li class="guideitem"><h3>Golden Nuggets</h3><p>Truth Worth Keeping</p></li>
-      <li class="guideitem"><h3>Life Lessons</h3><p>Wisdom Worth Passing</p></li>
-      <li class="guideitem"><h3>Family Rules</h3><p>Guidance Worth Keeping</p></li>
-      <li class="guideitem"><h3>12 Stones</h3><p>Remember What God Did</p></li>
-      <li class="guideitem"><h3>Book of Remembrance</h3><p>Remember His Faithfulness</p></li>
-      <li class="guideitem"><h3>Journal</h3><p>Thoughts &amp; Reflections</p></li>
-      <li class="guideitem"><h3>Secret Place</h3><p>Prayer With God</p></li>
-      <li class="guideitem"><h3>Captain&rsquo;s Chart</h3><p>Purpose &amp; Direction</p></li>
-      <li class="guideitem"><h3>Family</h3><p>Our Shared Legacy</p></li>
-      <li class="guideitem"><h3>The Shelf</h3><p>Number Your Days</p></li>
-    </ol>
-    <p class="guidefoot">You don&rsquo;t need to use every space at once. Begin with one Waymark and explore as you go.</p>
+    <p class="guideintro" id="appGuideIntro">90:12 helps you notice your days, keep the stories that matter, and pass on what life has taught you. Here is how its spaces fit together.</p>
+    <div class="guidestart"><h3>New here? Start with one moment.</h3><p>Open your Shelf, choose <strong>+ Waymark</strong>, and write something you want to remember. Save it when you are ready. You can explore the other spaces as your story grows.</p></div>
+    <section class="guidegroup" aria-labelledby="guideGroup1">
+      <div class="guidegrouphead"><span aria-hidden="true">01</span><h3 id="guideGroup1">Your life, in perspective</h3></div>
+      <ul class="guidegrid guidegrid-single" role="list">
+        <li class="guideitem" data-guide-name="The Shelf"><h4>The Shelf</h4><p class="guidetagline">Number Your Days</p><p class="guidehelp">See your life one week at a time. Your Shelf is home base: choose a week, remember what matters, and return here whenever you need your bearings.</p><p class="guideexample">Start here, then write one Waymark.</p></li>
+      </ul>
+    </section>
+    <section class="guidegroup" aria-labelledby="guideGroup2">
+      <div class="guidegrouphead"><span aria-hidden="true">02</span><h3 id="guideGroup2">Capture life &amp; choose your direction</h3></div>
+      <p class="guidegroupintro">You do not have to organize a whole lifetime. Begin with what is on your heart today.</p>
+      <ul class="guidegrid" role="list">
+        <li class="guideitem" data-guide-name="Waymarks"><h4>Waymarks</h4><p class="guidetagline">Mark the Journey</p><p class="guidehelp">Save a moment, story, or lesson from your journey so it is not forgotten. Use the + Waymark button to return to the writer on your own Shelf; review your words before saving.</p><p class="guideexample">“Today my daughter said something I never want to forget.”</p></li>
+        <li class="guideitem" data-guide-name="Journal"><h4>Journal</h4><p class="guidetagline">Thoughts &amp; Reflections</p><p class="guidehelp">A place for longer thoughts that do not need to be polished. Select meaningful text to make a Waymark, a prayer, or a goal while keeping the original journal entry.</p><p class="guideexample">Write freely first; decide what to carry forward afterward.</p><p class="guideplanned"><strong>Planned</strong> · More highlighted-text destinations are planned.</p></li>
+        <li class="guideitem" data-guide-name="Captain’s Chart"><h4>Captain’s Chart</h4><p class="guidetagline">Purpose &amp; Direction</p><p class="guidehelp">Write the goals, hopes, and intentions you want to live toward. When something happens along the way, tell that part of the story in a Waymark.</p><p class="guideexample">The Chart is where you intend to go; a Waymark remembers what happened.</p></li>
+      </ul>
+    </section>
+    <section class="guidegroup" data-guide-name="Wisdom" aria-labelledby="guideGroup3">
+      <div class="guidegrouphead"><span aria-hidden="true">03</span><h3 id="guideGroup3">Wisdom</h3></div>
+      <p class="guidegroupintro guidehelp">Wisdom holds what experience teaches you: a short truth, a fuller lesson, and guidance for how your family will live. Life Lessons and Family Rules are available now; a dedicated Golden Nuggets collection is planned.</p>
+      <ul class="guidegrid" role="list">
+        <li class="guideitem" data-guide-name="Golden Nuggets"><h4>Golden Nuggets</h4><p class="guidetagline">Truth Worth Keeping</p><p class="guidehelp">A short truth you want to carry with you: a sentence, quotation, or insight that deserves to be remembered.</p><p class="guideexample">“Being present matters more than being perfect.”</p><p class="guideplanned"><strong>Planned</strong> · A dedicated Golden Nuggets collection is planned. For now, keep the insight in a Waymark or Life Lesson.</p></li>
+        <li class="guideitem" data-guide-name="Life Lessons"><h4>Life Lessons</h4><p class="guidetagline">Wisdom Worth Passing</p><p class="guidehelp">Explain what an experience taught you and why it matters. A lesson can link to an existing Waymark, giving your family the story behind the wisdom.</p><p class="guideexample">“Here is what I learned about showing up when someone needs me.”</p></li>
+        <li class="guideitem" data-guide-name="Family Rules"><h4>Family Rules</h4><p class="guidetagline">Guidance Worth Keeping</p><p class="guidehelp">Put your shared values into words you can live by. These are the principles you want to practice and pass on—not just a list of things someone did wrong.</p><p class="guideexample">“In our family, we apologize and make things right.”</p></li>
+      </ul>
+    </section>
+    <section class="guidegroup" aria-labelledby="guideGroup4">
+      <div class="guidegrouphead"><span aria-hidden="true">04</span><h3 id="guideGroup4">Prayer &amp; remembrance</h3></div>
+      <p class="guidegroupintro">Keep the prayer, remember the answer, and give special weight to the moments that changed your faith.</p>
+      <ul class="guidegrid" role="list">
+        <li class="guideitem" data-guide-name="Secret Place"><h4>Secret Place</h4><p class="guidetagline">Prayer With God</p><p class="guidehelp">Bring your prayers, burdens, and thanks before God. Return to a prayer as the story unfolds, and mark it answered when you want to remember His faithfulness.</p><p class="guideexample">A prayer is the conversation; remembrance looks back on the answer.</p></li>
+        <li class="guideitem" data-guide-name="Book of Remembrance"><h4>Book of Remembrance</h4><p class="guidetagline">Remember His Faithfulness</p><p class="guidehelp">Revisit prayers you have marked answered in the Secret Place. This is your record of answers you do not want to forget.</p><p class="guideexample">Look back when you need encouragement to keep trusting.</p></li>
+        <li class="guideitem" data-guide-name="12 Stones"><h4>12 Stones</h4><p class="guidetagline">Remember What God Did</p><p class="guidehelp">Set apart significant moments when God taught you, helped you, or carried you through. Mark a Waymark as a 12 Stones week to find it here again.</p><p class="guideexample">Not every memory is a stone; choose the moments that anchor your faith.</p><p class="guideplanned"><strong>Planned</strong> · Directly turning an answered prayer into a linked 12 Stones memorial is planned.</p></li>
+      </ul>
+    </section>
+    <section class="guidegroup" aria-labelledby="guideGroup5">
+      <div class="guidegrouphead"><span aria-hidden="true">05</span><h3 id="guideGroup5">Family &amp; moments together</h3></div>
+      <p class="guidegroupintro">People give the story its meaning. Check who can see each item when you save or share it.</p>
+      <ul class="guidegrid" role="list">
+        <li class="guideitem" data-guide-name="Family"><h4>Family</h4><p class="guidetagline">Our Shared Legacy</p><p class="guidehelp">Find the people connected to your family and visit the shelves and memories available to you. Family connections do not mean every private space is open to everyone.</p><p class="guideexample">Review each item&#39;s sharing settings before passing it on.</p></li>
+        <li class="guideitem" data-guide-name="Family Photo Album"><h4>Family Photo Album</h4><p class="guidetagline">Moments to Remember</p><p class="guidehelp">Keep photos, videos, and voice recordings with the family story. Voice recordings let people hear the actual voice, with an optional written transcript alongside.</p><p class="guideexample">Media is currently available to the family-testing group.</p></li>
+        <li class="guideitem" data-guide-name="Balm of Gladness"><h4>Balm of Gladness</h4><p class="guidetagline">Laughter Worth Remembering</p><p class="guidehelp">A place envisioned for the funny stories, small delights, and unforgettable things your family says. These moments belong in your legacy too.</p><p class="guideexample">“The little one called the moon God&#39;s night-light.”</p><p class="guideplanned"><strong>Planned</strong> · A separate Balm of Gladness space is planned. For now, save the story as a Waymark.</p></li>
+      </ul>
+    </section>
+    <section class="guidegroup" aria-labelledby="guideGroup6">
+      <div class="guidegrouphead"><span aria-hidden="true">06</span><h3 id="guideGroup6">Keep the treasures close</h3></div>
+      <ul class="guidegrid guidegrid-single" role="list">
+        <li class="guideitem" data-guide-name="Palace Beautiful"><h4>Palace Beautiful</h4><p class="guidetagline">Treasures Worth Revisiting</p><p class="guidehelp">Mark a Waymark as a golden week when it is a memory you especially want to revisit. Think of it as setting a treasured moment apart without losing its place in your story.</p><p class="guideexample">Look for “Mark this a golden week” in the Waymark writer.</p><p class="guideplanned"><strong>Planned</strong> · A shared “Keep in Palace Beautiful” option across prayers, photos, Journal, and other spaces is planned.</p></li>
+      </ul>
+    </section>
+    <p class="guidefoot">You do not need to use every space at once. Some rooms open gradually during guided setup. Items marked <strong>Planned</strong> explain the direction of 90:12, not features you need to look for today. Always review sharing settings; this guide does not change who can see your memories.</p>
+    <details class="guideflow" id="appGuideFlow">
+      <summary>See how the spaces connect</summary>
+      <div class="guideflowbody">
+        <p class="guideflowintro">Start at the top, then follow the part of the journey that matters to you. This is a map of the idea, not a requirement to move every memory through every space.</p>
+        <div class="flowroot"><strong>The Shelf</strong><span>Number Your Days · the setting for your story</span></div>
+        <div class="flowarrow" aria-hidden="true">↓</div>
+        <div class="flowcapture"><strong>Capture &amp; live</strong><span>Waymarks: what happened · Journal: what you are thinking<br>Captain’s Chart: where you are heading</span></div>
+        <div class="flowarrow" aria-hidden="true">↓</div>
+        <div class="flowbranches">
+          <section class="flowbranch"><h4>Wisdom</h4><ul><li>Golden Nuggets <em>(planned collection)</em></li><li>Life Lessons</li><li>Family Rules</li></ul><p>A truth to keep → a lesson to understand → a principle to live by.</p></section>
+          <section class="flowbranch"><h4>Prayer &amp; remembrance</h4><ul><li>Secret Place</li><li>Book of Remembrance</li><li>12 Stones</li></ul><p>Pray → remember an answer → set apart a defining moment.</p></section>
+          <section class="flowbranch"><h4>Family memories</h4><ul><li>Family</li><li>Family Photo Album</li><li>Balm of Gladness <em>(planned space)</em></li></ul><p>The people, voices, pictures, and laughter in your story.</p></section>
+        </div>
+        <ul class="flowconnections" aria-label="Connections available today">
+          <li><strong>Journal → Waymark, Prayer, or Chart:</strong> select text to carry it forward.</li>
+          <li><strong>Waymark ↔ Life Lesson:</strong> link a lesson to the story behind it.</li>
+          <li><strong>Secret Place → Book of Remembrance:</strong> mark a prayer answered.</li>
+          <li><strong>Waymark → 12 Stones or a golden week:</strong> choose the matching box in the writer.</li>
+        </ul>
+        <div class="flowarrow" aria-hidden="true">↓</div>
+        <div class="flowtreasure flowplanned"><strong>Palace Beautiful</strong><span>Today: Waymarks marked as golden weeks.<br>Planned: treasures from across these spaces, kept close without replacing the originals.</span></div>
+        <p class="flowlegend">The groups show how the ideas relate; arrows between groups do not create or move entries automatically. The list above names connections available today. Dashed borders and “planned” labels describe future connections. Sharing remains a separate choice.</p>
+      </div>
+    </details>
   </div>
 </dialog>
 <!-- END EXPLORE 9012 GUIDE -->
 <div class="wrap">
 <div class="brand">9012 &middot; Number Our Days</div>
 <!-- EXPLORE 9012 TOOLS -->
-<div class="projecttools"><button type="button" class="ghost exploretrigger" id="appGuideTrigger" aria-haspopup="dialog" aria-controls="appGuideDialog" onclick="open9012Guide()">Explore 90:12</button>
-<div class="accountbar" id="accountBar" hidden><button type="button" class="ghost" onclick="openSignOut9012()">Sign Out</button></div>
-</div>
+<div class="projecttools" id="projectTools9012" hidden><button type="button" class="ghost exploretrigger" id="appGuideTrigger" aria-haspopup="dialog" aria-controls="appGuideDialog" onclick="open9012Guide()">Explore 90:12</button></div>
+<button type="button" class="quickwaymark" id="quickWaymark9012" aria-label="Write a Waymark on your Shelf" aria-controls="waymarkWriter9012" onclick="openQuickWaymark9012()" hidden>+ Waymark</button>
 <!-- END EXPLORE 9012 TOOLS -->
 
 <div class="view active" id="viewLetter">
@@ -635,7 +725,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
     <div id="famList"></div>
     <div id="famReleased"></div>
     <div class="addbar"><button class="ghost" onclick="openMyShelf()">My Shelf</button><button class="ghost" onclick="openFamilyPhotoAlbum()">Family Photo Album</button><button onclick="openAdd()">+ Add a person</button></div>
-    <div class="readletter"><button class="ghost" onclick="openLetter()">Read Elias&rsquo;s Letter</button> <button class="ghost" onclick="openForgotEmail()">Account &amp; recovery</button> <button type="button" class="ghost" onclick="openSignOut9012()">Sign Out</button></div>
+    <div class="readletter"><button class="ghost" onclick="openLetter()">Read Elias&rsquo;s Letter</button> <button class="ghost" onclick="openForgotEmail()">Account &amp; recovery</button></div>
     <section class="projectinvite" aria-labelledby="familyProjectInviteTitle">
       <div class="inviteeyebrow">Share 90:12</div>
       <h2 id="familyProjectInviteTitle">Invite someone to begin their own legacy</h2>
@@ -643,6 +733,9 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
       <div class="projectinviterow"><input type="email" id="familyProjectInviteEmail" aria-label="Email address to invite" placeholder="Email address (optional)"/><button onclick="sendProjectInvite('family')">Send an Invite</button></div>
       <div class="inviteprivacy">If you leave the email blank, your phone or computer will let you choose how to share the invitation. A secure family connection can be added later.</div>
     </section>
+    <!-- PROJECT GUIDE FAMILY FOOTER -->
+    <div class="accountbar accountfooter" id="accountBarFamily" hidden><button type="button" class="ghost" onclick="openSignOut9012()">Sign Out</button></div>
+    <!-- END PROJECT GUIDE FAMILY FOOTER -->
   </div>
 </div>
 
@@ -736,14 +829,14 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
     <button class="ghost" onclick="goToday()">Today</button>
   </div>
   <div class="wisdomwall" id="guidedWisdomWall"><div class="wisdomlbl">&#10022; Wall of Wisdom &#10022;</div><div class="wisdomcard" id="wisdomCard" onclick="nextWisdom()"></div><div class="wisdommore"><button class="footlink" onclick="nextWisdom()">Another &#8635;</button></div></div>
-  <div class="writer"><h3>This week&rsquo;s Waymark <button class="helpq" onclick="showCoach('waymarks',true)">?</button></h3><p class="small">A lesson learned, a fond memory. Mark a Palace Beautiful week in gold.</p>
+  <div class="writer" id="waymarkWriter9012"><h3>This week&rsquo;s Waymark</h3><p class="small">A lesson learned, a fond memory. Mark a Palace Beautiful week in gold.</p>
     <input type="text" id="wTitle" placeholder="Title (optional) &mdash; your first words become the title"/>
     <div class="waymark-voice" data-waymark-voice="wBody" data-voice-save="waymarkSave">You can also use your keyboard&rsquo;s microphone to dictate a memory.</div>
     <textarea id="wBody" aria-label="This week’s Waymark memory" placeholder="What happened this week that you don&rsquo;t want to forget?"></textarea><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div>
-    <div class="goldline"><label class="goldrow"><input type="checkbox" id="wGold"/> Mark this a golden week (Palace Beautiful)</label><button class="helpq" onclick="showCoach('palace',true)">?</button></div>
-    <div class="goldline"><label class="goldrow"><input type="checkbox" id="wStones"/> A 12 Stones week (the Lord taught me something)</label><button class="helpq" onclick="showCoach('stones',true)">?</button></div>
+    <div class="goldline"><label class="goldrow"><input type="checkbox" id="wGold"/> Mark this a golden week (Palace Beautiful)</label></div>
+    <div class="goldline"><label class="goldrow"><input type="checkbox" id="wStones"/> A 12 Stones week (the Lord taught me something)</label></div>
     <button id="waymarkSave" onclick="addWaymark()">Set this Waymark</button></div>
-  <div class="writer" id="guidedChartWriter"><h3>The Captain&rsquo;s Chart <button class="helpq" onclick="showCoach('chart',true)">?</button></h3><p class="small">A goal, a hope, a course to steer toward.</p>
+  <div class="writer" id="guidedChartWriter"><h3>The Captain&rsquo;s Chart</h3><p class="small">A goal, a hope, a course to steer toward.</p>
     <input type="text" id="gTitle" placeholder="Title (optional) &mdash; your first words become the title"/>
     <textarea id="gBody" placeholder="Where are you steering?"></textarea><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div>
     <button onclick="addGoal()">Set this course</button></div>
@@ -781,6 +874,9 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
     <div class="projectinviterow"><input type="email" id="shelfProjectInviteEmail" aria-label="Email address to invite" placeholder="Email address (optional)"/><button onclick="sendProjectInvite('shelf')">Send an Invite</button></div>
     <div class="inviteprivacy">This invitation is available at the bottom of every person&rsquo;s shelf. A secure family connection can be added later.</div>
   </section>
+  <!-- PROJECT GUIDE SHELF FOOTER -->
+  <div class="accountbar accountfooter" id="accountBar" hidden><button type="button" class="ghost" onclick="openSignOut9012()">Sign Out</button></div>
+  <!-- END PROJECT GUIDE SHELF FOOTER -->
 </div>
 
 
@@ -910,7 +1006,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
     <button class="door doorfam" id="doorPhotos" onclick="closeModal('doorsModal');openFamilyPhotoAlbum()" style="display:none"><span class="doorname">Family Photo Album</span><span class="doortagline">Moments to Remember</span></button>
     <button class="door" onclick="closeModal('doorsModal');openThemeChoiceFromShelf()">Theme / Appearance</button>
   </div>
-  <button type="button" class="ghost doorsguide" id="doorsGuideTrigger" aria-haspopup="dialog" aria-controls="appGuideDialog" onclick="open9012Guide(this)">Explore 90:12 <small>— All 13 names, explained</small></button>
+  <button type="button" class="ghost doorsguide" id="doorsGuideTrigger" aria-haspopup="dialog" aria-controls="appGuideDialog" onclick="open9012Guide(this)" hidden>Explore 90:12 <small>— How your journey fits together</small></button>
   <div class="mrow"><button class="ghost" onclick="closeModal('doorsModal')">Stay here</button></div>
 </div></div>
 <!-- END DOORS DESCRIPTIONS -->
@@ -1291,6 +1387,63 @@ function goDoorWisdom(section){
   goDoor('viewWisdom');
 }
 // END DOORS DESCRIPTIONS CONTROLS
+// PROJECT GUIDE LAYOUT CONTROLS
+// UI only: no new storage, sharing, authentication, or microphone operations.
+let projectGuideAccount9012='';
+let projectGuideEntered9012=false;
+const projectGuideRooms9012=new Set(['viewJar','viewWaymarks','viewWisdom','view12Stones','viewChart','viewFamily','viewFamilyShelf','viewFamilyWaymarks','viewFamilyPrayers','viewFamilyGoals','viewFamilyPhotos','viewJournal','viewSecret','viewHelp','viewSalvation','viewRecentlyDeleted','viewAdd','viewThemeChoice']);
+function projectGuideState9012(){
+  const userId=currentSession&&currentSession.user&&currentSession.user.id;
+  const account=userId&&activePersonId?userId+':'+activePersonId:'';
+  if(account!==projectGuideAccount9012){projectGuideAccount9012=account;projectGuideEntered9012=false;}
+  const view=activeViewId();
+  if(account&&view==='viewJar'&&P()&&P().id===activePersonId)projectGuideEntered9012=true;
+  const inside=!!(account&&projectGuideEntered9012&&projectGuideRooms9012.has(view)&&!passwordRecovery.active);
+  return {inside,account,view};
+}
+function updateProjectGuide9012(){
+  const state=projectGuideState9012();
+  const setHidden=(id,hidden)=>{const node=el(id);if(node&&node.hidden!==hidden)node.hidden=hidden;};
+  setHidden('projectTools9012',!state.inside);
+  setHidden('doorsGuideTrigger',!state.inside);
+  const overlay=!!document.querySelector('.modal.open, dialog[open]');
+  setHidden('quickWaymark9012',!state.inside||overlay||!people.some(p=>p.id===activePersonId));
+  setHidden('accountBarFamily',!(currentSession&&currentSession.user));
+  document.body.classList.toggle('project-guide-inside',state.inside);
+}
+function openQuickWaymark9012(){
+  const state=projectGuideState9012();
+  if(!state.inside||signOutBusy||document.querySelector('.modal.open, dialog[open]'))return;
+  const ownIndex=people.findIndex(p=>p.id===activePersonId);
+  if(ownIndex<0)return; // Never fall back to somebody else's Shelf.
+  if(!P()||P().id!==activePersonId){
+    const hasDraft=['wTitle','wBody'].some(id=>!!(el(id)&&el(id).value.trim()))||['wGold','wStones'].some(id=>!!(el(id)&&el(id).checked));
+    if(hasDraft){alert('There is an unfinished Waymark on the shelf you were viewing. Please save or clear it there before starting one on your own Shelf.');return;}
+    openMyShelf();
+  }else if(state.view!=='viewJar'){
+    // Preserve the selected week and any words already in the writer.
+    markTabs('viewJar');show('viewJar');
+  }
+  if(activeViewId()!=='viewJar'||!P()||P().id!==activePersonId)return;
+  requestAnimationFrame(()=>{
+    const latest=projectGuideState9012();
+    if(!latest.inside||latest.account!==state.account||activeViewId()!=='viewJar'||!P()||P().id!==activePersonId||signOutBusy||document.querySelector('.modal.open, dialog[open]'))return;
+    const writer=el('waymarkWriter9012'),body=el('wBody');
+    if(!writer||!body)return;
+    const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    writer.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+    body.focus({preventScroll:true});
+  });
+}
+function mountProjectGuide9012(){
+  const observer=new MutationObserver(updateProjectGuide9012);
+  for(const node of document.querySelectorAll('.view,.modal,dialog'))observer.observe(node,{attributes:true,attributeFilter:['class','open','hidden']});
+  // Existing auth controls already receive session changes; observe, don't replace them.
+  const accountBar=el('accountBar');if(accountBar)observer.observe(accountBar,{attributes:true,attributeFilter:['hidden']});
+  updateProjectGuide9012();
+}
+document.addEventListener('DOMContentLoaded',mountProjectGuide9012,{once:true});
+// END PROJECT GUIDE LAYOUT CONTROLS
 // SIGN OUT CONTROLS — no local keepsakes are cleared until save and auth succeed.
 let signOutBusy=false;
 function updateAccountControls(session=currentSession){
