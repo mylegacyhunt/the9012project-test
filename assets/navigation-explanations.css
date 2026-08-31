@@ -1,0 +1,9 @@
+.nav-explanation{position:fixed;z-index:120;box-sizing:border-box;width:max-content;max-width:270px;padding:10px 14px;border:1px solid #b49351;border-radius:11px;background:#21190f;color:#f0e2c4;box-shadow:0 8px 25px #0007;font-family:'EB Garamond',Georgia,serif;font-size:15px;font-weight:400;line-height:1.4;letter-spacing:0;text-align:left;white-space:pre-line;overflow-wrap:anywhere;}
+.nav-explanation[hidden],.nav-explanation-group[hidden]{display:none!important;}
+.nav-explanation-group{display:inline-flex;align-items:center;gap:2px;min-width:0;max-width:100%;}
+.tabs .nav-explanation-group>.tab{padding-right:12px;}
+button.nav-explanation-help{display:inline-flex;align-items:center;justify-content:center;flex:none;width:28px;min-width:28px;height:36px;min-height:36px;padding:0;border:0;border-radius:999px;background:transparent;box-shadow:none;color:#d8ba71;font-family:Georgia,serif;font-size:13px;line-height:1;letter-spacing:0;cursor:help;}
+button.nav-explanation-help:hover,button.nav-explanation-help[aria-expanded="true"]{background:#c9a84c24;color:#ffe4a1;}
+button.nav-explanation-help:focus-visible{outline:2px solid #e6c978;outline-offset:1px;}
+@media(pointer:coarse){button.nav-explanation-help{width:40px;min-width:40px;height:44px;min-height:44px;}}
+@media(max-width:520px){.nav-explanation{font-size:14px;padding:9px 12px;}.tabs .nav-explanation-group>.tab{padding-left:12px;padding-right:10px;}}
