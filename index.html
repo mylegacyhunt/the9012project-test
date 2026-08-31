@@ -3518,4 +3518,39 @@ if(supabaseClient){
  }
  armAppHistory();
 })();
-</script></body></html>
+</script>
+<!-- KEEPSAKE FEATURES -->
+<link rel="stylesheet" href="assets/keepsakes.css"/>
+<script>
+window.app9012KeepsakeBridge={
+ context:function(){return {client:supabaseClient,userId:currentSession&&currentSession.user?currentSession.user.id:null,householdId:cloudMode==='household'?householdId:null,personId:activePersonId};},
+ isOwnShelf:function(){return !!(currentSession&&activePersonId&&P()&&P().id===activePersonId);},
+ entered:function(){return !!(currentSession&&projectGuideEntered9012&&projectGuideRooms9012.has(activeViewId()));},
+ hand:function(){var me=people.find(function(p){return p.id===activePersonId;});return me&&me.hand?me.hand:'caveat';},
+ message:function(text){say(text);},
+ source:function(kind,id){var p=P();return p&&((kind==='waymark'?p.waymarks:p.goals)||[]).find(function(x){return String(x.id)===String(id);});},
+ hasDraft:function(kind){var prefix=kind==='waymark'?'w':'g';return !!(el(prefix+'Title').value.trim()||el(prefix+'Body').value.trim());},
+ saveDraft:async function(kind){
+  if(!this.isOwnShelf())throw Error('Own shelf required');
+  var p=P(),key=kind==='waymark'?'waymarks':'goals',before=new Set((p[key]||[]).map(function(x){return x.id;}));
+  if(kind==='waymark')addWaymark();else addGoal();
+  var created=(p[key]||[]).find(function(x){return !before.has(x.id);});
+  if(!created)throw Error('No entry saved');await this.syncSource(kind,created.id);return created.id;
+ },
+ syncSource:async function(kind,id){
+  if(!this.isOwnShelf()||!this.source(kind,id)||cloudMode!=='household'||cloudHydrating||cloudLoadPromise||cloudSaving)throw Error('Wait for the connected shelf to finish saving.');
+  var c=this.context(),snapshot=JSON.parse(JSON.stringify(people)),released=JSON.parse(JSON.stringify(releasedPeople));
+  clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSaving=true;
+  try{await Store.set('people',snapshot);var r=await c.client.rpc('app9012_save',{p_people:snapshot,p_released:released});
+   if(r.error)throw r.error;
+   if(!r.data||!r.data.linked||r.data.person_id!==c.personId||r.data.household_id!==c.householdId||!currentSession||currentSession.user.id!==c.userId)throw Error('Source save unconfirmed');
+  }finally{cloudSaving=false;if(cloudSavePending){cloudSavePending=false;queueCloudSave();}}
+ },
+ openWisdom:function(){tab('viewWisdom');return activeViewId()==='viewWisdom';},
+ closeDoors:function(){closeModal('doorsModal');},
+ openSource:function(kind,id,personId){var index=people.findIndex(function(p){return p.id===personId;});if(index<0){say('The source shelf is not available to this account.');return;}var p=people[index],key=kind==='waymark'?'waymarks':'goals';if(!(p[key]||[]).some(function(x){return String(x.id)===String(id);})){say('The original entry is private, no longer available, or has not synced to this device.');return;}cur=index;_scrollTo=(kind==='waymark'?'wm_':'g_')+id;tab(kind==='waymark'?'viewWaymarks':'viewChart');scrollToTarget();}
+};
+</script>
+<script src="assets/keepsakes.js"></script>
+<!-- END KEEPSAKE FEATURES -->
+</body></html>
