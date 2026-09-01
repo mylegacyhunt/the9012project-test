@@ -1,4 +1,4 @@
-/* Read-only navigation help, using the same deeper explanations as Explore. */
+/* Read-only top-navigation help, using only the short Doors taglines. */
 (function(root,factory){
   'use strict';const api=factory();
   if(typeof module==='object'&&module.exports)module.exports=api;
@@ -27,8 +27,7 @@
     const doc=root?.document;if(!doc||doc.getElementById('navigationExplanationLayer'))return;
     // Doors captions remain visible, but Doors never receives a tooltip binding.
     const doors=[...doc.querySelectorAll('#doorsModal .door')].map(button=>({name:button.querySelector('.doorname')?.textContent.trim(),text:button.querySelector('.doortagline')?.textContent.trim()}));
-    const guides=[...doc.querySelectorAll('#appGuideDialog [data-guide-name]')].map(item=>({name:item.dataset.guideName,text:item.querySelector('.guidehelp')?.textContent.trim()}));
-    const records=descriptions([...doors,...guides]);if(!records.size)return;
+    const records=descriptions(doors);if(!records.size)return;
     const layer=doc.createElement('div');layer.id='navigationExplanationLayer';doc.body.append(layer);
     const bubbles=new Map();let active=null,timer=null,sequence=0;
     function bubbleFor(copy){

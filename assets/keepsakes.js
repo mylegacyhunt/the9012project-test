@@ -43,7 +43,7 @@
   const heading=(text)=>node('h2',text);
   const note=(text)=>node('p',text,'ks-hint');
   const uuid=()=>root.crypto.randomUUID();
-  let generation=0,last=null,token='',tokenDeadline=0,dialog=null,dialogClose=null,dialogTrigger=null,busy=false,letterDraft=null,urls=[],polling=false;
+  let generation=0,last=null,token='',tokenDeadline=0,dialog=null,dialogClose=null,dialogTrigger=null,dialogKey='',busy=false,letterDraft=null,urls=[],polling=false;
   const errorText=e=>String(e?.message||e||'').includes('letters_locked')?'Your letters are locked. Close this window and unlock Letters again.':String(e?.message||e||'').includes('already_opened')?'This letter has already been opened and cannot be recalled.':String(e?.message||e||'').includes('recipient_needs')?'That person needs their own connected account before receiving private letters.':'Could not confirm this action. Check your connection and retry. If this is the first test, the new Supabase migration must be installed first.';
   function alive(c,g){return generation===g&&sameAccount(c,ctx());}
   async function rpc(action,payload={},c=ctx()){
@@ -56,15 +56,30 @@
    if(!dialog)return;if(busy&&!force)return;
    if(!force&&dialogClose&&dialogClose()===false)return;
    dialog.querySelectorAll('video,audio').forEach(p=>{p.pause();p.removeAttribute('src');p.load();});
-   dialog.close();dialog.remove();dialog=null;dialogClose=null;dispose();
+   if(dialog.open)dialog.close();dialog.remove();dialog=null;dialogClose=null;dialogKey='';dispose();
    if(dialogTrigger?.isConnected)dialogTrigger.focus();dialogTrigger=null;
   }
-  function modal(title,cls=''){
+  function suspend(){
+   if(!dialog||!dialog.open||busy)return;
+   dialog.querySelectorAll('video,audio').forEach(p=>p.pause());
+   dialog.close();dialog.dataset.ksSuspended='true';
+   if(dialogTrigger?.isConnected)dialogTrigger.focus();
+  }
+  function resume(key){
+   if(!dialog||dialog.open||dialog.dataset.ksSuspended!=='true'||dialogKey!==key)return false;
+   delete dialog.dataset.ksSuspended;dialog.showModal();
+   const focus=dialog._ksFocus;if(focus?.isConnected)focus.focus();else dialog.querySelector('textarea,input,select,button')?.focus();
+   return true;
+  }
+  function modal(title,cls='',key=title){
    close(true);const d=node('dialog',undefined,'ks-dialog '+cls);d.setAttribute('aria-label',title);
    const head=node('div',undefined,'ks-dialog-head'),exit=btn('Close',()=>close());head.append(heading(title),exit);
    const body=node('div',undefined,'ks-dialog-body'),status=node('p','','ks-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-   d.append(head,body,status);doc.body.append(d);dialogTrigger=doc.activeElement;dialog=d;
-   d.addEventListener('cancel',e=>{e.preventDefault();close();});d.showModal();exit.focus();return {d,body,status,exit};
+   d.append(head,body,status);doc.body.append(d);dialogTrigger=doc.activeElement;dialog=d;dialogKey=key;
+   d.addEventListener('focusin',e=>{if(e.target!==d)d._ksFocus=e.target;});
+   d.addEventListener('cancel',e=>{e.preventDefault();suspend();});
+   d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)suspend();});
+   d.showModal();exit.focus();return {d,body,status,exit};
   }
   function field(label,tag='input',value=''){
    const wrap=node('label',undefined,'ks-field'),input=node(tag);input.value=value;wrap.append(node('span',label),input);return {wrap,input};
@@ -83,7 +98,8 @@
   }
   async function attachments(kind,id,canWrite){
    const source=sourceInfo(kind,id);if(!source)return;
-   const m=modal('Pictures, videos & files'),c=ctx(),g=generation;let drafts=[],vis='private',working=false;
+   const key='attachments:'+kind+':'+id;if(resume(key))return;
+   const m=modal('Pictures, videos & files','',key),c=ctx(),g=generation;let drafts=[],vis='private',working=false;
    m.body.append(note(source.title||'Saved memory'),note('Photos: 12 MB · Videos: 45 MB · Documents: 20 MB. Original files are not resized. HEIC/HEIF and MOV may need downloading to open on another device.'));
    const audience=visibility(),picker=node('input'),camera=node('input');picker.type=camera.type='file';picker.multiple=true;picker.accept=Object.keys(EXT).map(x=>'.'+x).join(',');camera.accept='image/*';camera.setAttribute('capture','environment');picker.hidden=camera.hidden=true;
    const selected=node('div'),list=node('div',undefined,'ks-list');
@@ -123,8 +139,9 @@
   }
   function nuggetEditor(sourceId='',existing=null){
    if(sourceId&&!bridge.isOwnShelf()){bridge.message('Create Golden Nuggets from your own Waymarks.');return;}
+   const key='nugget:'+(existing?.id||sourceId||'new');if(resume(key))return;
    const source=sourceId?sourceInfo('waymark',sourceId):null;
-   const m=modal(existing?'Edit Golden Nugget':'Save a Golden Nugget'),body=field('Truth Worth Keeping','textarea',existing?.body||''),audience=visibility(existing?.visibility),id=existing?.id||uuid();body.input.maxLength=2000;body.input.rows=5;
+   const m=modal(existing?'Edit Golden Nugget':'Save a Golden Nugget','',key),body=field('Truth Worth Keeping','textarea',existing?.body||''),audience=visibility(existing?.visibility),id=existing?.id||uuid();body.input.maxLength=2000;body.input.rows=5;
    m.body.append(note('Keep the short truth you learned. This does not replace the original Waymark.'),body.wrap,audience.wrap);
    if(source){const details=node('details');details.append(node('summary','Read the source Waymark'),node('p',source.body||source.title||'','ks-source'));m.body.append(details,note('Linked to: '+(source.title||'Waymark')));}
    const save=btn('Save Golden Nugget',async()=>{if(!body.input.value.trim()){m.status.textContent='Write the truth you want to keep.';body.input.focus();return;}
@@ -146,8 +163,9 @@
    await load();
   }
   async function unlock(next){
+   if(resume('letter-unlock'))return;
    try{const r=await rpc('letter_lock_status');if(!r.locked||(token&&Date.now()<tokenDeadline)){await next();return;}
-    const m=modal('Unlock your letters'),pass=field('Letters passcode');pass.input.type='password';pass.input.autocomplete='off';pass.input.maxLength=64;m.body.append(pass.wrap,note('This protects the letters area on a shared device. It is not end-to-end encryption.'));
+    const m=modal('Unlock your letters','','letter-unlock'),pass=field('Letters passcode');pass.input.type='password';pass.input.autocomplete='off';pass.input.maxLength=64;m.body.append(pass.wrap,note('This protects the letters area on a shared device. It is not end-to-end encryption.'));
     const go=btn('Unlock',async()=>{go.disabled=true;try{const r=await rpc('letter_unlock',{pin:pass.input.value});token=r.token;tokenDeadline=Date.now()+9*60*1000;pass.input.value='';close(true);await next();}catch(e){m.status.textContent=String(e.message||'Passcode not accepted.');}finally{go.disabled=false;}});m.body.append(go);pass.input.focus();
    }catch(e){bridge.message(errorText(e));}
   }
@@ -156,8 +174,9 @@
   function applyHand(input,hand){input.style.fontFamily='"'+(HANDS[hand]||HANDS.caveat)+'", cursive';}
   function compose(){return unlock(()=>composeNow());}
   function composeNow(){
-   const m=modal('Write a private letter','ks-letter-dialog');letterDraft=letterDraft||{id:uuid(),body:'',hand:bridge.hand() in HANDS?bridge.hand():'caveat',recipient:null};
-   const style=field('Writing style','select');for(const [value,label] of Object.entries(HANDS)){const opt=node('option',label);opt.value=value;style.input.append(opt);}style.input.value=letterDraft.hand;
+   if(resume('letter-compose'))return;
+   const m=modal('Write a private letter','ks-letter-dialog','letter-compose');letterDraft=letterDraft||{id:uuid(),body:'',hand:bridge.hand() in HANDS?bridge.hand():'caveat',recipient:null};
+   const style=field('Choose your writing style','select');style.wrap.classList.add('ks-letter-style');for(const [value,label] of Object.entries(HANDS)){const opt=node('option',label);opt.value=value;style.input.append(opt);}style.input.value=letterDraft.hand;
    const paper=node('div',undefined,'ks-paper'),text=field('Your letter','textarea',letterDraft.body);text.input.maxLength=20000;text.input.rows=12;applyHand(text.input,letterDraft.hand);paper.append(text.wrap);
    text.input.addEventListener('input',()=>{letterDraft.body=text.input.value;});style.input.addEventListener('change',()=>{letterDraft.hand=style.input.value;applyHand(text.input,style.input.value);});
    const recipients=node('div',undefined,'ks-recipients');
@@ -178,11 +197,14 @@
     catch(e){m.status.textContent=errorText(e)+' Retry the same recipient to confirm delivery. Your letter is still here.';}
     finally{busy=false;recipients.querySelectorAll('button').forEach(b=>b.disabled=false);}
    }
-   m.body.append(note('Private between you and the recipient. Recall is available only until they open it.'),style.wrap,paper,next,recipients);
+   const remove=btn('Delete message',()=>{if(!root.confirm('Delete this unsent message? This is the only action that erases the draft.'))return;letterDraft=null;text.input.value='';recipients.replaceChildren();close(true);bridge.message('The unsent message was deleted.');},'ghost ks-delete-message');
+   const controls=node('div',undefined,'ks-letter-controls');controls.append(next,remove);
+   m.body.append(note('Private between you and the recipient. Click outside this letter to return to your Shelf; open Write a letter again and every word will still be here. Recall is available only until they open it.'),style.wrap,paper,controls,recipients);
    dialogClose=()=>{letterDraft.body=text.input.value;return true;};text.input.focus();
   }
   async function letters(){
-   const m=modal('Your letters'),tools=node('div',undefined,'ks-actions'),box=node('div',undefined,'ks-list');let offset=0,rows=[],sent=false;
+   if(resume('letter-list'))return;
+   const m=modal('Your letters','','letter-list'),tools=node('div',undefined,'ks-actions'),box=node('div',undefined,'ks-list');let offset=0,rows=[],sent=false;
    const received=btn('Received',()=>{sent=false;draw();}),sentButton=btn('Sent',()=>{sent=true;draw();});
    const more=btn('Load older letters',load);tools.append(received,sentButton,btn('Write a letter',compose),btn('Passcode settings',()=>pinSettings()),btn('Lock letters',async()=>{try{await rpc('letter_lock');}catch(e){}token='';tokenDeadline=0;close(true);}));
    m.body.append(tools,note('Unopened letters appear first. Opened letters are kept here by sender and date—even if you leave without pressing Close.'),box,more);
@@ -197,7 +219,8 @@
    await load();
   }
   async function readLetter(row){
-   const m=modal('Opening letter…','ks-letter-dialog');m.status.textContent='Opening securely…';
+   const key='letter-read:'+row.id;if(resume(key))return;
+   const m=modal('Opening letter…','ks-letter-dialog',key);m.status.textContent='Opening securely…';
    try{const letter=await rpc('letter_open',{id:row.id});if(dialog!==m.d)return;
     m.d.querySelector('h2').textContent='From '+letter.sender_name;m.status.textContent='';
     const paper=node('div',undefined,'ks-paper'),text=node('div',letter.body,'ks-letter-text');applyHand(text,letter.hand);paper.append(note(new Date(letter.created_at).toLocaleString()),text);m.body.append(paper);
@@ -206,7 +229,8 @@
    }catch(e){if(dialog===m.d)m.status.textContent=String(e.message||'').includes('letter_recalled')?'The sender recalled this letter before it opened.':errorText(e);}
   }
   function pinSettings(){
-   const m=modal('Letters passcode'),pass=field('New passcode (6–64 characters)'),confirm=field('Repeat new passcode');pass.input.type=confirm.input.type='password';pass.input.maxLength=confirm.input.maxLength=64;pass.input.autocomplete=confirm.input.autocomplete='new-password';
+   if(resume('letter-passcode'))return;
+   const m=modal('Letters passcode','','letter-passcode'),pass=field('New passcode (6–64 characters)'),confirm=field('Repeat new passcode');pass.input.type=confirm.input.type='password';pass.input.maxLength=confirm.input.maxLength=64;pass.input.autocomplete=confirm.input.autocomplete='new-password';
    m.body.append(note('Optional, server-checked protection for your letters. Remember it: there is no automatic passcode reset in this pilot. This is not end-to-end encryption; the service administrator can access server data.'),pass.wrap,confirm.wrap);
    async function save(value){try{await rpc('letter_set_pin',{pin:value});token='';tokenDeadline=0;close(true);bridge.message(value?'Letters passcode saved.':'Letters passcode removed.');}catch(e){m.status.textContent=errorText(e);}}
    m.body.append(btn('Save passcode',()=>{if(pass.input.value.length<6||pass.input.value!==confirm.input.value){m.status.textContent='Use at least 6 characters and repeat the same passcode.';return;}save(pass.input.value);}),btn('Remove passcode',()=>{if(root.confirm('Remove your optional letters passcode? Account privacy remains enforced.'))save('');}));
