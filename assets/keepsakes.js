@@ -169,7 +169,7 @@
     const go=btn('Unlock',async()=>{go.disabled=true;try{const r=await rpc('letter_unlock',{pin:pass.input.value});token=r.token;tokenDeadline=Date.now()+9*60*1000;pass.input.value='';close(true);await next();}catch(e){m.status.textContent=String(e.message||'Passcode not accepted.');}finally{go.disabled=false;}});m.body.append(go);pass.input.focus();
    }catch(e){bridge.message(errorText(e));}
   }
-  function envelope(label,action,cls=''){const b=btn('',action,'ks-envelope '+cls);b.setAttribute('aria-label',label);const crop=node('span',undefined,'ks-envelope-crop'),image=node('img');image.src='assets/letter-envelope.png';image.alt='';crop.append(image);b.append(crop);return b;}
+  function envelope(label,action,cls=''){const b=btn('',action,'ks-envelope '+cls);b.setAttribute('aria-label',label);const crop=node('span',undefined,'ks-envelope-crop'),image=node('img');image.src='assets/images/shared/ui/keepsake-letter-envelope-app.jpg';image.alt='';crop.append(image);b.append(crop);return b;}
   const floating=envelope('Open unread letters',()=>unlock(()=>letters()),'ks-floating');floating.hidden=true;const badge=node('span','','ks-count');floating.append(badge);doc.body.append(floating);
   function applyHand(input,hand){input.style.fontFamily='"'+(HANDS[hand]||HANDS.caveat)+'", cursive';}
   function compose(){return unlock(()=>composeNow());}

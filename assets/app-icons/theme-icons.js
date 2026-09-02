@@ -8,14 +8,14 @@
   var defaultTheme = 'lantern_heritage';
   var themes = {
     lantern_heritage: {
-      favicon: 'assets/app-icons/lantern-heritage-32-v1.png',
-      touchIcon: '/apple-touch-icon.png',
+      favicon: 'assets/images/themes/lantern-heritage/icons/app-icon-32-v1-app.png',
+      touchIcon: 'assets/images/themes/lantern-heritage/icons/app-icon-180-v1-app.png',
       manifest: 'manifest.webmanifest',
       color: '#140d06'
     },
     heirloom_light: {
-      favicon: 'assets/app-icons/heirloom-light-32-v1.png',
-      touchIcon: 'assets/app-icons/heirloom-light-180-v1.png',
+      favicon: 'assets/images/themes/heirloom-light/icons/app-icon-32-v1-app.png',
+      touchIcon: 'assets/images/themes/heirloom-light/icons/app-icon-180-v1-app.png',
       manifest: 'manifest-heirloom-light.webmanifest',
       color: '#f5eddf'
     }
