@@ -14,8 +14,8 @@
       color: '#140d06'
     },
     heirloom_light: {
-      favicon: 'assets/images/themes/heirloom-light/icons/app-icon-32-v1-app.png',
-      touchIcon: 'assets/images/themes/heirloom-light/icons/app-icon-180-v1-app.png',
+      favicon: 'assets/images/themes/heirloom-light/icons/app-icon-32-v3-app.png',
+      touchIcon: 'assets/images/themes/heirloom-light/icons/app-icon-180-v3-app.png',
       manifest: 'manifest-heirloom-light.webmanifest',
       color: '#f5eddf'
     }
