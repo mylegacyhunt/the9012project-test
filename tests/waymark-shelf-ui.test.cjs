@@ -65,3 +65,12 @@ test('lantern flicker is added only to light-theme artwork and respects reduced 
  assert.equal((html.match(/@keyframes flickerFlame\{/g)||[]).length,1,'Heritage flame animation remains unchanged');
  assert.doesNotMatch(html,/html\[data-theme="lantern_heritage"\].*heirloomLanternGlow/);
 });
+
+test('Heirloom Light uses the two-marble week-turn animation without changing Heritage',()=>{
+ assert.doesNotMatch(html,/html\[data-theme="heirloom_light"\][^\n}]*\.scene>\.marble[^\n}]*display:none/);
+ assert.match(html,/html\[data-theme="heirloom_light"\] \.scene>\.marble\{display:block/);
+ assert.match(html,/id="lightMarbleCover"/);
+ assert.match(html,/function turnLightWeek\(\).*setArc\(mA,50\.75,75\.9.*setArc\(mB,72,55.*setArc\(mB,50\.75,75\.9/s);
+ assert.match(html,/function turnWeek\(\)\{if\(busy\)return;if\(currentThemeKey==='heirloom_light'\)\{turnLightWeek\(\);return;\}busy=true;flameOff\(\);podEmpty\(\);setArc\(mA,50,80\.5/);
+ assert.match(html,/turnLightWeek\(\).*prefers-reduced-motion: reduce/s);
+});

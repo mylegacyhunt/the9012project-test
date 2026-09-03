@@ -141,6 +141,7 @@ h1{font-family:'Cormorant Garamond',serif;font-weight:500;text-align:center;font
 #podUnlit{position:absolute;left:42.97%;top:76.17%;width:14.32%;z-index:2;pointer-events:none;}
 #podLit{position:absolute;left:42.97%;top:76.17%;width:14.32%;z-index:3;pointer-events:none;opacity:1;transition:opacity .4s ease;} #podLit.off{opacity:0;}
 .marble{position:absolute;width:2.6%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;opacity:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+.light-marble-cover{display:none;position:absolute;left:50.75%;top:75.9%;width:5.2%;aspect-ratio:1.55;z-index:5;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(255,249,222,.98) 0 19%,rgba(255,226,148,.96) 40%,rgba(215,166,85,.84) 63%,rgba(237,214,168,.5) 72%,transparent 76%);transition:opacity .12s ease;}
 .num{position:absolute;transform:translate(-50%,-50%);z-index:5;pointer-events:none;font-family:'Cormorant Garamond',serif;font-weight:600;color:#dcc78d;font-size:clamp(11px,1.7vw,17px);letter-spacing:.04em;text-shadow:0 1px 1px rgba(0,0,0,.9),0 -1px 0 rgba(255,235,180,.16);}
 #numBehind{left:24%;top:65.5%;} #numBefore{left:76.5%;top:65.5%;}
 .readout{text-align:center;font-family:'Cormorant Garamond',serif;letter-spacing:.08em;color:#C9A84C;font-size:clamp(13px,2vw,16px);margin:14px 0 0;}
@@ -498,7 +499,9 @@ html[data-theme="heirloom_light"] .scene{aspect-ratio:4/3;background:#ede2d2;box
 html[data-theme="heirloom_light"] .shelf-plaque-before{clip-path:inset(52.3% 23.2% 38.3% 67.1%);}
 html[data-theme="heirloom_light"] .famstrip{aspect-ratio:4/3;}
 html[data-theme="heirloom_light"] .famstrip .shelf-plaque-before{object-fit:contain;object-position:center;clip-path:inset(52.3% 23.2% 38.3% 67.1%);}
-html[data-theme="heirloom_light"] #globeOff,html[data-theme="heirloom_light"] #globeOn,html[data-theme="heirloom_light"] #podUnlit,html[data-theme="heirloom_light"] #podLit,html[data-theme="heirloom_light"] .scene>.marble,html[data-theme="heirloom_light"] .famstrip .sflame{display:none;}
+html[data-theme="heirloom_light"] #globeOff,html[data-theme="heirloom_light"] #globeOn,html[data-theme="heirloom_light"] #podUnlit,html[data-theme="heirloom_light"] #podLit,html[data-theme="heirloom_light"] .famstrip .sflame{display:none;}
+html[data-theme="heirloom_light"] .scene>.marble{display:block;width:2.45%;filter:brightness(1.62) saturate(.42) sepia(.18) drop-shadow(0 2px 3px rgba(74,55,35,.42));}
+html[data-theme="heirloom_light"] .light-marble-cover{display:block;}html[data-theme="heirloom_light"] .light-marble-cover.active{opacity:1;}
 /* The light artwork has baked-in flames. These overlays animate only the glow,
    keeping the scene, jar labels, and counters perfectly still. */
 html[data-theme="heirloom_light"] .scene::after,html[data-theme="heirloom_light"] .famstrip::after{content:"";position:absolute;left:50.5%;top:57%;width:14%;aspect-ratio:1;z-index:4;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,247,203,.72) 0 7%,rgba(255,194,72,.38) 20%,rgba(255,157,42,.14) 43%,transparent 70%);mix-blend-mode:screen;animation:heirloomLanternGlow 2.35s steps(1,end) infinite;}
@@ -940,7 +943,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
     <img class="shelf-plaque-before" src="assets/images/themes/lantern-heritage/lantern/lantern-scene-04-app.jpg" alt="" aria-hidden="true"/>
     <img id="globeOff" src="assets/images/themes/lantern-heritage/lantern/globe-off-app.png"/><img id="globeOn" src="assets/images/themes/lantern-heritage/lantern/globe-on-app.png"/>
     <img id="podUnlit" src="assets/images/themes/lantern-heritage/lantern/pod-unlit-app.png"/><img id="podLit" src="assets/images/themes/lantern-heritage/lantern/pod-lit-app.png"/>
-    <img class="marble" id="mA" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/><img class="marble" id="mB" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/>
+    <span class="light-marble-cover" id="lightMarbleCover" aria-hidden="true"></span><img class="marble" id="mA" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/><img class="marble" id="mB" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/>
     <div class="num" id="numBehind">&mdash;</div><div class="num" id="numBefore">&mdash;</div>
   </div>
   <div class="readout" id="readout"></div>
@@ -2042,7 +2045,7 @@ function aLife(){el('asp').value=(el('agender').value==='f'?81:77);}
 
 /* scene */
 const frames=[...document.querySelectorAll('.frame')];
-const globeOn=el('globeOn'),podLit=el('podLit'),mA=el('mA'),mB=el('mB');
+const globeOn=el('globeOn'),podLit=el('podLit'),mA=el('mA'),mB=el('mB'),lightMarbleCover=el('lightMarbleCover');
 const TODAY=new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
 let total=0,f=0,fTarget=0,busy=false,lived=0,dayOffset=0,birth=null,stepTimer=null,holdTimer=null;
 function setLevel(fr){const pct=Math.max(0,Math.min(100,fr*100));const idx=pct/12.5,lo=Math.floor(idx),hi=Math.min(8,Math.ceil(idx)),bl=idx-lo;for(let i=0;i<9;i++)frames[i].style.opacity=(i===lo?1:(i===hi&&hi!==lo?bl:0));}
@@ -2058,7 +2061,11 @@ function goToday(){dayOffset=0;refresh();}
 function weekStep(d){dayOffset+=d*7;refresh();}
 function startStep(dir){stopStep();dayOffset+=dir;refresh();holdTimer=setTimeout(()=>{let n=0;stepTimer=setInterval(()=>{n++;const jump=n<10?2:(n<20?6:16);dayOffset+=dir*jump;refresh();},50);},300);}
 function stopStep(){clearTimeout(holdTimer);holdTimer=null;clearInterval(stepTimer);stepTimer=null;}
-function turnWeek(){if(busy)return;busy=true;flameOff();podEmpty();setArc(mA,50,80.5,1,1,0);
+function turnLightWeek(){if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){dayOffset+=7;refresh();return;}busy=true;if(lightMarbleCover)lightMarbleCover.classList.add('active');setArc(mA,50.75,75.9,1,1,0);
+ setTimeout(()=>setArc(mA,40,44,1,1,520),40);setTimeout(()=>setArc(mA,31,54,1,1,460),560);setTimeout(()=>setArc(mA,31,59,.6,0,320),1020);
+ setTimeout(()=>setArc(mB,72,55,1,1,0),1300);setTimeout(()=>setArc(mB,62,44,1,1,520),1360);setTimeout(()=>setArc(mB,50.75,75.9,1,1,520),1880);
+ setTimeout(()=>{mB.style.opacity=0;if(lightMarbleCover)lightMarbleCover.classList.remove('active');dayOffset+=7;refresh();busy=false;},2420);}
+function turnWeek(){if(busy)return;if(currentThemeKey==='heirloom_light'){turnLightWeek();return;}busy=true;flameOff();podEmpty();setArc(mA,50,80.5,1,1,0);
  setTimeout(()=>setArc(mA,38,44,1,1,520),40);setTimeout(()=>setArc(mA,24,54,1,1,460),560);setTimeout(()=>setArc(mA,24,58,.6,0,320),1020);
  setTimeout(()=>setArc(mB,76,54,1,1,0),1300);setTimeout(()=>setArc(mB,62,44,1,1,520),1360);setTimeout(()=>setArc(mB,50.1,78.3,1,1,520),1880);
  setTimeout(()=>{mB.style.opacity=0;podOn();flameOn();},2420);setTimeout(()=>{dayOffset+=7;refresh();busy=false;},1200);}
