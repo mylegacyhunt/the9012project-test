@@ -1,19 +1,22 @@
-.waymark-voice{margin:12px 0 14px;padding:14px;border:1px solid rgba(201,168,76,.4);border-radius:14px;background:#20180f;color:#eadfc9;text-align:left;font-family:'EB Garamond',Georgia,serif;line-height:1.5}
+.waymark-compose{position:relative}
+.waymark-compose textarea{padding-right:62px}
+.waymark-voice{margin:0;color:#eadfc9;text-align:left;font-family:'EB Garamond',Georgia,serif;line-height:1.5}
 .waymark-voice [hidden]{display:none!important}
-.voice-actions,.voice-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.voice-actions{position:absolute;right:8px;top:7px;display:flex;align-items:center}
+.voice-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .waymark-voice button{min-height:44px;margin:0!important;width:auto!important;max-width:100%;white-space:normal;font-size:16px;line-height:1.3}
-.waymark-voice .voice-hold{min-width:170px;flex:1;padding:14px 18px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;border:1px solid #d4ac50;background:#d0ac62;color:#24180b;font-weight:bold}
+.waymark-voice .voice-hold{min-width:44px;height:44px;padding:8px 11px;touch-action:manipulation;border:1px solid #d4ac50;background:#d0ac62;color:#24180b;font-weight:bold}
 .waymark-voice .voice-hold:focus-visible,.waymark-voice button:focus-visible{outline:3px solid #f3d899;outline-offset:3px}
 .waymark-voice.is-listening{border-color:#e8b37f;box-shadow:0 0 0 2px rgba(232,179,127,.18)}
 .waymark-voice.is-listening .voice-hold{background:#823622;border-color:#f1ba8a;color:#fff5e8}
 .waymark-voice button:disabled{opacity:.55;cursor:not-allowed}
-.voice-help,.voice-status,.voice-interim{margin:10px 0!important;font-size:15px!important;line-height:1.5!important}
+.voice-status,.voice-interim{margin:4px 0 10px!important;font-size:14px!important;line-height:1.45!important}
 .voice-status{font-weight:bold;color:#f3dca4;min-height:1.5em}
 .voice-help{color:#dbcdb5}
 .voice-interim{font-style:italic;color:#dbcdb5;padding-left:10px;border-left:2px solid #c9a84c;overflow-wrap:anywhere}
 .voice-privacy{margin:14px 0;padding:14px;background:#302517;border-radius:10px;border:1px solid #a98b54}
 .voice-privacy p{margin:0 0 10px!important;font-size:16px!important;line-height:1.5!important}
 .voice-privacy button{margin:4px 8px 4px 0!important}
-.voice-tools{margin-top:8px}
+.voice-tools{margin-top:6px}
 .waymark-voice .voice-tools button{font-size:14px}
-@media(max-width:480px){.voice-actions{align-items:stretch}.voice-actions button{flex-basis:100%}.waymark-voice{padding:12px}.voice-tools button{flex:1}}
+@media(max-width:480px){.voice-tools button{flex:1}}

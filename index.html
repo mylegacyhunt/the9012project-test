@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" id="appTouchIcon" sizes="180x180" href="assets/images/themes/lantern-heritage/icons/app-icon-180-v1-app.png"/>
 <link rel="manifest" id="appManifest" href="manifest.webmanifest"/>
 <script src="assets/app-icons/theme-icons.js"></script>
-<link rel="stylesheet" href="assets/waymark-dictation.css"/>
-<script src="assets/waymark-dictation.js" defer></script>
+<link rel="stylesheet" href="assets/waymark-dictation.css?v=20260903b"/>
+<script src="assets/waymark-dictation.js?v=20260903b" defer></script>
 <!-- FAMILY MEDIA ASSETS -->
 <link rel="stylesheet" href="assets/family-media.css"/>
 <script src="assets/family-media.js" defer></script>
@@ -132,6 +132,8 @@ label{display:block;font-family:'Cormorant Garamond',serif;letter-spacing:.14em;
 h1{font-family:'Cormorant Garamond',serif;font-weight:500;text-align:center;font-size:clamp(20px,3.6vw,30px);margin:0 0 10px;}
 .scene{position:relative;width:100%;aspect-ratio:1536/1024;border-radius:12px;overflow:hidden;box-shadow:0 24px 50px -24px #000;background:#0b0704;}
 .frame{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;will-change:opacity;}
+.shelf-plaque-before{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:contain;z-index:2;pointer-events:none;clip-path:inset(51% 15% 38% 68%);}
+@media(min-width:1040px){.scene{width:calc(100% + 144px);margin-left:-72px;}}
 #globeOff{position:absolute;left:45.57%;top:45.7%;width:9.64%;z-index:3;pointer-events:none;}
 #globeOn{position:absolute;left:45.57%;top:45.7%;width:9.64%;z-index:4;pointer-events:none;opacity:1;transition:opacity .35s ease;animation:flickerFlame 2.2s ease-in-out infinite;}
 #globeOn.off{animation:none;opacity:0;}
@@ -178,7 +180,8 @@ h1{font-family:'Cormorant Garamond',serif;font-weight:500;text-align:center;font
 .famstatus{display:inline-block;margin-top:6px;border:1px solid rgba(201,168,76,.32);border-radius:999px;padding:3px 9px;font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c9b78f;background:rgba(201,168,76,.06);} .famstatus.pending{color:#e1bd6a;border-color:rgba(225,189,106,.5);} .famstatus.connected{color:#a9c987;border-color:rgba(169,201,135,.45);background:rgba(95,145,74,.10);} .famstatus.self{color:#a9c987;border-color:rgba(169,201,135,.45);background:rgba(95,145,74,.10);}
 .famstatusrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}.famstatusrow .famstatus{margin-top:0}.famresend{margin:0!important;padding:4px 11px!important;width:auto!important;font-size:11px!important;line-height:1.2;} .familyshelf{max-width:640px;margin:0 auto;} .fshead{text-align:center;margin-bottom:20px;} .fshead h1{margin-bottom:5px;} .fslead{color:#a99c83;font-style:italic;margin:6px 0 0;} .fsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;} .fspanel{background:#1f1710;border:1px solid rgba(201,168,76,.22);border-radius:14px;padding:18px;} .fspanel.wide{grid-column:1/-1;} .fspanel h2{font-family:'Cormorant Garamond',serif;font-weight:500;color:#C9A84C;font-size:20px;margin:0 0 8px;} .fspanel p{color:#a99c83;margin:0;line-height:1.45;} .fsjarvisual{margin:12px auto 10px;max-width:520px;padding:8px;background:#140e08;border:1px solid rgba(201,168,76,.18);border-radius:12px;box-shadow:inset 0 0 24px rgba(0,0,0,.35);} .fsjarvisual .famstrip{margin:0;} .fsjarcaption{text-align:center;color:#C9A84C!important;font-family:'Cormorant Garamond',serif;letter-spacing:.06em;} .fswaymark{border-top:1px solid rgba(201,168,76,.16);padding:11px 0;} .fswaymark:first-of-type{border-top:none;padding-top:2px;} .fswaymark strong{display:block;color:#E8DCC8;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;} .fswaymark span{display:block;color:#a99c83;margin-top:3px;white-space:pre-wrap;} .fsviewall{width:100%;margin-top:12px;} .familywaymarks,.familyprayers{max-width:640px;margin:0 auto;} .familywaymarkslist,.familyprayerslist{margin-top:18px;} .familywaymarkcard{background:#f4ecd8;color:#2a2318;border:18px solid transparent;border-image:var(--cream) 60 fill;border-image-repeat:round;padding:9px 14px;margin:0 0 14px;} .familywaymarkdate{font-family:'Cormorant Garamond',serif;color:#76551d;font-size:12px;letter-spacing:.08em;text-transform:uppercase;} .familywaymarktitle{font-family:'Caveat',cursive;font-size:29px;font-weight:700;line-height:1.1;margin-top:4px;} .familywaymarkbody{font-family:'Caveat',cursive;font-size:21px;line-height:1.35;white-space:pre-wrap;margin-top:5px;} .fsprayerpreview{border-top:1px solid rgba(201,168,76,.16);padding:10px 0;color:#d7ccb2;font-style:italic;white-space:pre-wrap;} .fsprayerpreview:first-of-type{border-top:none;padding-top:2px;} .familyprayercard{background:#f4ecd8;color:#2a2318;border:18px solid transparent;border-image:var(--cream) 60 fill;border-image-repeat:round;padding:11px 15px;margin:0 0 14px;} .familyprayerdate{font-family:'Cormorant Garamond',serif;color:#76551d;font-size:12px;letter-spacing:.08em;text-transform:uppercase;} .familyprayerbody{font-family:'EB Garamond',serif;font-style:italic;font-size:19px;line-height:1.55;white-space:pre-wrap;margin-top:6px;} .familyprayeranswered{margin-top:9px;color:#466528;font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.04em;} .fsmessage{width:100%;margin-top:12px;} @media(max-width:560px){.fsgrid{grid-template-columns:1fr}.fspanel.wide{grid-column:auto}}
 .famstrip{position:relative;width:100%;aspect-ratio:65/32;border-radius:8px;overflow:hidden;} .famstrip img:not(.sflame){width:100%;height:100%;display:block;object-fit:cover;object-position:center bottom;} .famstrip .top{position:absolute;inset:0;} .famstrip .sflame{position:absolute;left:50.39%;top:26.47%;width:9.64%;transform:translateX(-50%);animation:flickerFlame 2.2s ease-in-out infinite;pointer-events:none;}
-.snum{position:absolute;transform:translate(-50%,-50%);font-family:'Cormorant Garamond',serif;font-weight:600;color:#dcc78d;font-size:clamp(9px,1.7vw,13px);text-shadow:0 1px 1px #000,0 -1px 0 rgba(255,235,180,.12);}
+.famstrip .shelf-plaque-before{object-fit:cover;object-position:center bottom;clip-path:inset(33.6% 15% 51.5% 68%);}
+.snum{position:absolute;z-index:3;transform:translate(-50%,-50%);font-family:'Cormorant Garamond',serif;font-weight:600;color:#dcc78d;font-size:clamp(9px,1.7vw,13px);text-shadow:0 1px 1px #000,0 -1px 0 rgba(255,235,180,.12);}
 /* Full 3:2 scenes are bottom-cropped to 65:32 here. Map y with
    1 + (65/48) * (sourceY - 1), preserving the source's horizontal positions. */
 .sbehind{left:24%;top:53.28%;} .sbefore{left:76.5%;top:53.28%;}
@@ -492,7 +495,9 @@ html[data-theme="heirloom_light"] .card,html[data-theme="heirloom_light"] .gate,
 html[data-theme="heirloom_light"] .famname,html[data-theme="heirloom_light"] .fswaymark strong,html[data-theme="heirloom_light"] .projectinvite h2,html[data-theme="heirloom_light"] .writer h3,html[data-theme="heirloom_light"] .wisdomitem h3,html[data-theme="heirloom_light"] .guideitem h4,html[data-theme="heirloom_light"] .guidegroup h3,html[data-theme="heirloom_light"] .guideheader h2{color:#4e3c2c;}
 html[data-theme="heirloom_light"] .pagehead p,html[data-theme="heirloom_light"] .empty,html[data-theme="heirloom_light"] .note,html[data-theme="heirloom_light"] .fslead,html[data-theme="heirloom_light"] .fspanel p,html[data-theme="heirloom_light"] .joshua,html[data-theme="heirloom_light"] .themelead,html[data-theme="heirloom_light"] .wisdomintro,html[data-theme="heirloom_light"] .wisdomtext,html[data-theme="heirloom_light"] .guideintro,html[data-theme="heirloom_light"] .guidegroupintro,html[data-theme="heirloom_light"] .guideitem .guidehelp,html[data-theme="heirloom_light"] .guideitem .guideexample{color:#756551;}
 html[data-theme="heirloom_light"] .scene{aspect-ratio:4/3;background:#ede2d2;box-shadow:0 22px 45px -25px rgba(73,53,35,.45);}
+html[data-theme="heirloom_light"] .shelf-plaque-before{clip-path:inset(52.3% 23.2% 38.3% 67.1%);}
 html[data-theme="heirloom_light"] .famstrip{aspect-ratio:4/3;}
+html[data-theme="heirloom_light"] .famstrip .shelf-plaque-before{object-fit:contain;object-position:center;clip-path:inset(52.3% 23.2% 38.3% 67.1%);}
 html[data-theme="heirloom_light"] #globeOff,html[data-theme="heirloom_light"] #globeOn,html[data-theme="heirloom_light"] #podUnlit,html[data-theme="heirloom_light"] #podLit,html[data-theme="heirloom_light"] .scene>.marble,html[data-theme="heirloom_light"] .famstrip .sflame{display:none;}
 html[data-theme="heirloom_light"] #numBehind{left:31%;top:65.5%;color:#5f4a33;text-shadow:0 1px rgba(255,255,255,.7);}html[data-theme="heirloom_light"] #numBefore{left:72%;top:65.5%;color:#5f4a33;text-shadow:0 1px rgba(255,255,255,.7);}
 html[data-theme="heirloom_light"] .sbehind{left:31%;top:65.5%;}html[data-theme="heirloom_light"] .sbefore{left:72%;top:65.5%;}html[data-theme="heirloom_light"] .snum{color:#5f4a33;text-shadow:0 1px rgba(255,255,255,.7);}
@@ -781,8 +786,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
       <div class="eyebrow">Your first Waymark</div>
       <h1>What is one moment you never want your family to forget?</h1>
       <p class="journeylead">Begin with just one memory. It can be joyful, ordinary, hard-won, or holy&mdash;anything you want your family to carry forward.</p>
-      <div class="waymark-voice" data-waymark-voice="firstWaymarkBody" data-voice-save="firstWaymarkSave">You can also use your keyboard&rsquo;s microphone to dictate a memory.</div>
-      <textarea id="firstWaymarkBody" aria-label="Your first Waymark memory" placeholder="Tell the moment in your own words&hellip;"></textarea>
+      <div class="waymark-compose"><textarea id="firstWaymarkBody" aria-label="Your first Waymark memory" placeholder="Tell the moment in your own words&hellip;"></textarea><div class="waymark-voice" data-waymark-voice="firstWaymarkBody" data-voice-save="firstWaymarkSave"></div></div>
       <div class="journeyactions"><button id="firstWaymarkSave" onclick="saveFirstWaymark()">Preserve this memory</button><button class="ghost" onclick="chooseFullExperience()">I&rsquo;d like to explore everything</button></div>
     </div>
     <div class="journeysuccess" id="firstWaymarkSuccess">
@@ -926,6 +930,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
 <img class="frame" src="assets/images/themes/lantern-heritage/lantern/lantern-scene-06-app.jpg"/>
 <img class="frame" src="assets/images/themes/lantern-heritage/lantern/lantern-scene-07-app.jpg"/>
 <img class="frame" src="assets/images/themes/lantern-heritage/lantern/lantern-scene-08-app.jpg"/>
+    <img class="shelf-plaque-before" src="assets/images/themes/lantern-heritage/lantern/lantern-scene-04-app.jpg" alt="" aria-hidden="true"/>
     <img id="globeOff" src="assets/images/themes/lantern-heritage/lantern/globe-off-app.png"/><img id="globeOn" src="assets/images/themes/lantern-heritage/lantern/globe-on-app.png"/>
     <img id="podUnlit" src="assets/images/themes/lantern-heritage/lantern/pod-unlit-app.png"/><img id="podLit" src="assets/images/themes/lantern-heritage/lantern/pod-lit-app.png"/>
     <img class="marble" id="mA" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/><img class="marble" id="mB" src="assets/images/themes/lantern-heritage/marbles/marble-app.png"/>
@@ -943,8 +948,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
   <div class="wisdomwall" id="guidedWisdomWall"><div class="wisdomlbl">&#10022; Wall of Wisdom &#10022;</div><div class="wisdomcard" id="wisdomCard" onclick="nextWisdom()"></div><div class="wisdommore"><button class="footlink" onclick="nextWisdom()">Another &#8635;</button></div></div>
   <div class="writer" id="waymarkWriter9012"><h3>This week&rsquo;s Waymark</h3><p class="small">A lesson learned, a fond memory. Mark a Palace Beautiful week in gold.</p>
     <input type="text" id="wTitle" placeholder="Title (optional) &mdash; your first words become the title"/>
-    <div class="waymark-voice" data-waymark-voice="wBody" data-voice-save="waymarkSave">You can also use your keyboard&rsquo;s microphone to dictate a memory.</div>
-    <textarea id="wBody" aria-label="This week’s Waymark memory" placeholder="What happened this week that you don&rsquo;t want to forget?"></textarea><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div>
+    <div class="waymark-compose"><textarea id="wBody" aria-label="This week’s Waymark memory" placeholder="What happened this week that you don&rsquo;t want to forget?"></textarea><div class="waymark-voice" data-waymark-voice="wBody" data-voice-save="waymarkSave"></div></div><div class="attachrow"><button class="attachbtn" onclick="attachSoon()">&#43; Add photo or file</button></div>
     <div class="goldline"><label class="goldrow"><input type="checkbox" id="wGold"/> Mark this a golden week (Palace Beautiful)</label></div>
     <div class="goldline"><label class="goldrow"><input type="checkbox" id="wStones"/> A 12 Stones week (the Lord taught me something)</label></div>
     <button id="waymarkSave" onclick="addWaymark()">Set this Waymark</button></div>
@@ -2569,7 +2573,7 @@ function isManagedPendingInvite(p){
 function renderFamily(){el('famDate').textContent=TODAY;const familyTitle=el('famTitle');if(familyTitle)familyTitle.textContent=familyPageTitle();
  el('famList').innerHTML=people.map((p,i)=>{const b=new Date(p.birth+'T00:00:00');const tot=Math.round((p.lifespan||79)*365.25/7);const lv=Math.max(0,Math.floor((Date.now()-b.getTime())/(7*864e5)));const before=Math.max(0,tot-lv);const fr=tot?Math.min(1,lv/tot):0;const ix=fr*8;const lo=Math.floor(ix);const hi=Math.min(8,Math.ceil(ix));const bl=ix-lo;
    const flame=FAMILY_FLAME?`<img class="sflame" src="${FAMILY_FLAME}"/>`:'';
-   return `<div class="famcard" onclick="openPerson(${i})"><div class="famtop"><div><div class="famname">${esc(familyFirstName(p))}\u2019s Jar of Weeks</div><div class="fambd">${mdY(p.birth)}</div></div><span class="famweek">Week ${(lv+1).toLocaleString()}</span></div><div class="famstrip"><img src="${STRIPS[lo]}"/><img class="top" src="${STRIPS[hi]}" style="opacity:${bl}"/>${flame}<span class="snum sbehind">${lv.toLocaleString()}</span><span class="snum sbefore">${before.toLocaleString()}</span></div></div>`;}).join('');
+   return `<div class="famcard" onclick="openPerson(${i})"><div class="famtop"><div><div class="famname">${esc(familyFirstName(p))}\u2019s Jar of Weeks</div><div class="fambd">${mdY(p.birth)}</div></div><span class="famweek">Week ${(lv+1).toLocaleString()}</span></div><div class="famstrip"><img src="${STRIPS[lo]}"/><img class="top" src="${STRIPS[hi]}" style="opacity:${bl}"/><img class="shelf-plaque-before" src="${STRIPS[4]}" alt="" aria-hidden="true"/>${flame}<span class="snum sbehind">${lv.toLocaleString()}</span><span class="snum sbefore">${before.toLocaleString()}</span></div></div>`;}).join('');
  Array.from(el('famList').querySelectorAll('.famcard')).forEach(function(card,i){
    const p=people[i],status=familyConnectionStatus(p);
    const nameLabel=card.querySelector('.famname');if(nameLabel)nameLabel.textContent=familyFirstName(p)+'\u2019s Jar of Weeks';
