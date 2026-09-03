@@ -74,3 +74,11 @@ test('Heirloom Light uses the two-marble week-turn animation without changing He
  assert.match(html,/function turnWeek\(\)\{if\(busy\)return;if\(currentThemeKey==='heirloom_light'\)\{turnLightWeek\(\);return;\}busy=true;flameOff\(\);podEmpty\(\);setArc\(mA,50,80\.5/);
  assert.match(html,/turnLightWeek\(\).*prefers-reduced-motion: reduce/s);
 });
+
+test('Heirloom Light jar counters use phone-readable dark text without changing Heritage',()=>{
+ assert.match(html,/html\[data-theme="heirloom_light"\] #numBehind\{[^}]*color:#24180f[^}]*font-weight:700/);
+ assert.match(html,/html\[data-theme="heirloom_light"\] #numBefore\{[^}]*color:#24180f[^}]*font-weight:700/);
+ assert.match(html,/html\[data-theme="heirloom_light"\] \.snum\{[^}]*color:#24180f[^}]*font-weight:700/);
+ assert.match(html,/\.num\{[^}]*color:#dcc78d/,'Heritage main shelf counter color remains unchanged');
+ assert.match(html,/\.snum\{[^}]*color:#dcc78d/,'Heritage family shelf counter color remains unchanged');
+});
