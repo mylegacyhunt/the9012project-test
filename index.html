@@ -331,6 +331,7 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
 .secretdoor{max-width:300px;margin:30px auto 0;text-align:center;cursor:pointer;transition:.25s;}
 .secretdoor:hover{transform:translateY(-3px);filter:brightness(1.08);}
 .secretdoor img{width:100%;display:block;filter:drop-shadow(0 22px 44px rgba(0,0,0,.65));}
+.secretdoor:focus-visible{outline:3px solid #c9a84c;outline-offset:6px;border-radius:16px;}
 .doorcaption{font-family:'Cormorant Garamond',serif;letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:#C9A84C;margin-top:10px;}
 .secretwrap{max-width:600px;margin:0 auto;}
 .secretback{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
@@ -480,11 +481,11 @@ html[data-theme="heirloom_light"] .secretseq .walkstatus{color:#57432e;}
 
 /* Heirloom Light uses only its own artwork plus explicitly shared assets. */
 html[data-theme="heirloom_light"] body{background:radial-gradient(110% 95% at 50% -10%,#fffdf7,#f3eadc 58%,#e5d8c4 100%);color:#493a2d;}
-html[data-theme="heirloom_light"] .brand,html[data-theme="heirloom_light"] label,html[data-theme="heirloom_light"] .famdate,html[data-theme="heirloom_light"] .famweek,html[data-theme="heirloom_light"] .readout,html[data-theme="heirloom_light"] .doorcaption,html[data-theme="heirloom_light"] .rhead h2,html[data-theme="heirloom_light"] .fspanel h2{color:#897151;}
+html[data-theme="heirloom_light"] .brand,html[data-theme="heirloom_light"] label,html[data-theme="heirloom_light"] .famdate,html[data-theme="heirloom_light"] .famweek,html[data-theme="heirloom_light"] .readout,html[data-theme="heirloom_light"] .doorcaption,html[data-theme="heirloom_light"] .rhead h2,html[data-theme="heirloom_light"] .fspanel h2{color:#69533e;}
 html[data-theme="heirloom_light"] button{background:linear-gradient(180deg,#fbf7ed,#e8ddcb);color:#4e3b2a;border-color:#aa906d;box-shadow:0 2px 8px rgba(87,65,43,.08);}
 html[data-theme="heirloom_light"] button:hover{box-shadow:0 0 0 3px rgba(126,145,104,.2);}
 html[data-theme="heirloom_light"] button.ghost,html[data-theme="heirloom_light"] .tab{background:rgba(255,253,247,.56);color:#74634f;border-color:rgba(123,101,73,.3);}
-html[data-theme="heirloom_light"] .tab.active,html[data-theme="heirloom_light"] .gbtn.active,html[data-theme="heirloom_light"] .pill.active{background:linear-gradient(180deg,#9baa84,#778868);color:#fffdf7;border-color:#6f8060;}
+html[data-theme="heirloom_light"] .tab.active,html[data-theme="heirloom_light"] .gbtn.active,html[data-theme="heirloom_light"] .pill.active{background:#556044;color:#fffdf7;border-color:#465237;}
 html[data-theme="heirloom_light"] input,html[data-theme="heirloom_light"] textarea,html[data-theme="heirloom_light"] select{background:#fffdf8;color:#493a2d;border-color:rgba(115,94,67,.35);}
 html[data-theme="heirloom_light"] input:focus,html[data-theme="heirloom_light"] textarea:focus,html[data-theme="heirloom_light"] select:focus{border-color:#80906d;box-shadow:0 0 0 3px rgba(128,144,109,.16);}
 html[data-theme="heirloom_light"] .card,html[data-theme="heirloom_light"] .gate,html[data-theme="heirloom_light"] .writer,html[data-theme="heirloom_light"] .famcard,html[data-theme="heirloom_light"] .fspanel,html[data-theme="heirloom_light"] .mbox,html[data-theme="heirloom_light"] .signoutdialog,html[data-theme="heirloom_light"] .guidedialog,html[data-theme="heirloom_light"] .guideitem,html[data-theme="heirloom_light"] .guideflow,html[data-theme="heirloom_light"] .shelfmsgbox,html[data-theme="heirloom_light"] .wisdomitem,html[data-theme="heirloom_light"] .photocard,html[data-theme="heirloom_light"] .phoneiconhelp{background:rgba(255,252,245,.9);color:#493a2d;border-color:rgba(134,107,72,.28);box-shadow:0 16px 38px rgba(92,71,48,.12);}
@@ -499,8 +500,9 @@ html[data-theme="heirloom_light"] .fsjarvisual{background:#eee3d3;border-color:r
 html[data-theme="heirloom_light"] .parchsheet,html[data-theme="heirloom_light"] .familypaper{border:1px solid rgba(121,96,65,.24);border-image:none;background:linear-gradient(145deg,#fffdf7,#f2e8d8);border-radius:14px;padding:22px;filter:drop-shadow(0 14px 20px rgba(72,53,34,.12));}
 html[data-theme="heirloom_light"] .entry,html[data-theme="heirloom_light"] .familywaymarkcard,html[data-theme="heirloom_light"] .familyprayercard,html[data-theme="heirloom_light"] .prayercard,html[data-theme="heirloom_light"] .creamsheet{background:linear-gradient(145deg,#fffdf8,#f2e7d5);border-image:none;border:1px solid rgba(125,99,65,.22);color:#3f3024;box-shadow:0 10px 24px rgba(78,58,38,.09);}
 html[data-theme="heirloom_light"] .rules-scroll{min-height:0;background-image:none;background:linear-gradient(145deg,#fffdf8,#eee2d0);border:1px solid rgba(125,99,65,.22);border-radius:18px;padding:50px 54px;box-shadow:0 16px 34px rgba(78,58,38,.1);}
-html[data-theme="heirloom_light"] .secretdoor{min-height:230px;border:1px solid rgba(115,93,66,.3);border-radius:150px 150px 18px 18px;background:radial-gradient(circle at 50% 68%,rgba(246,211,139,.55),transparent 25%),linear-gradient(145deg,#fbf6ea,#dfe5d2);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:28px;box-shadow:0 18px 36px rgba(78,59,38,.13);}
-html[data-theme="heirloom_light"] .secretdoor img{display:none;}html[data-theme="heirloom_light"] .secretdoor .doorcaption{font-size:15px;letter-spacing:.16em;color:#5d513f;}
+html[data-theme="heirloom_light"] .secretdoor{max-width:380px;border:1px solid #d8c9af;border-radius:20px;background:#f8f3e8;overflow:hidden;padding:0 0 20px;box-shadow:0 14px 30px rgba(78,59,38,.12);}
+html[data-theme="heirloom_light"] .secretdoor img{display:block;height:auto;filter:none;}html[data-theme="heirloom_light"] .secretdoor .doorcaption{padding:0 14px;font-size:17px;letter-spacing:.12em;color:#594631;}
+html[data-theme="heirloom_light"] .secretdoor:focus-visible{outline-color:#4f5b42;}
 .lightletter{display:none;}
 html[data-theme="heirloom_light"] .lightletter{display:block;max-width:660px;margin:28px auto;padding:32px 26px;background:#fffaf0;color:#584330;border:1px solid #ccba9d;border-radius:12px;font-family:'EB Garamond',Georgia,serif;font-size:20px;line-height:1.6;}
 html[data-theme="heirloom_light"] .letterimg,html[data-theme="heirloom_light"] #splashWoman{display:none!important;}
@@ -510,6 +512,40 @@ html[data-theme="heirloom_light"] .gate p,html[data-theme="heirloom_light"] .wri
 html[data-theme="heirloom_light"] .legacyBegin{color:#665039;text-shadow:none;}
 html[data-theme="heirloom_light"] .coachbody{color:#665039;}html[data-theme="heirloom_light"] .coachbody b{color:#57412c;}
 html[data-theme="heirloom_light"] .secretverse{color:#75604a;}
+html[data-theme="heirloom_light"] .belowpage .handlbl,html[data-theme="heirloom_light"] .belowpage .prompttoggle,html[data-theme="heirloom_light"] .belowpage .companionrow,html[data-theme="heirloom_light"] .belowpage .pill:not(.active),html[data-theme="heirloom_light"] .laydownlbl{color:#5b513e;}
+html[data-theme="heirloom_light"] .readout,html[data-theme="heirloom_light"] .goldrow,html[data-theme="heirloom_light"] .famdate,html[data-theme="heirloom_light"] .famweek,html[data-theme="heirloom_light"] .fambd{color:#69533e;}
+html[data-theme="heirloom_light"] .wisdomlbl,html[data-theme="heirloom_light"] .inviteeyebrow,html[data-theme="heirloom_light"] .wq .ast{color:#87441f;}
+html[data-theme="heirloom_light"] .projectinvite p,html[data-theme="heirloom_light"] .inviteprivacy,html[data-theme="heirloom_light"] .wisdomempty{color:#69533e;}
+html[data-theme="heirloom_light"] .photohead p,html[data-theme="heirloom_light"] .photoempty,html[data-theme="heirloom_light"] #viewFamilyPhotos summary{color:#69533e;}
+html[data-theme="heirloom_light"] .jtitle{color:#493a2d;}
+html[data-theme="heirloom_light"] .jverse{color:#4f5b42;}
+html[data-theme="heirloom_light"] .jhint{color:#69533e;}
+html[data-theme="heirloom_light"] .jprev{color:#493a2d;}
+html[data-theme="heirloom_light"] .jcardmark,html[data-theme="heirloom_light"] .rhead p{color:#69533e;}
+html[data-theme="heirloom_light"] .eacts{flex-wrap:wrap;}
+html[data-theme="heirloom_light"] .eacts .mini{background:#f0eadb;color:#493a2d;border-color:#b6a78d;min-height:40px;max-width:100%;white-space:normal;}
+html[data-theme="heirloom_light"] .eacts .mini.danger{color:#8b3328;border-color:#aa7865;}
+/* Light-theme Salvation: dark ink on a quiet cream reading surface. */
+html[data-theme="heirloom_light"] .sitefoot .footlink{color:#694f38;}
+html[data-theme="heirloom_light"] .sitefoot .salvationlink{display:block;width:fit-content;max-width:100%;min-height:48px;margin:20px auto 12px;padding:12px 22px;border:1px solid #8a4628;border-radius:28px;background:#8a4628;color:#fffaf0;font-size:18px;font-weight:600;text-decoration:none;text-shadow:none;animation:none;opacity:1;box-shadow:0 4px 12px rgba(93,56,30,.16);}
+html[data-theme="heirloom_light"] .sitefoot .salvationlink:hover{background:#713820;color:#fffaf0;text-shadow:none;}
+html[data-theme="heirloom_light"] .salvwrap{margin:18px auto 0;padding:clamp(18px,4vw,32px);background:#fffaf0;border:1px solid #cbb99d;border-radius:22px;box-shadow:0 12px 30px rgba(83,63,40,.1);}
+html[data-theme="heirloom_light"] .salvspine,html[data-theme="heirloom_light"] .salvtitle{color:#493a2d;}
+html[data-theme="heirloom_light"] .salvtitle{font-size:32px;font-weight:600;}
+html[data-theme="heirloom_light"] .salvbody{color:#493a2d;font-size:18px;line-height:1.75;overflow-wrap:anywhere;}
+html[data-theme="heirloom_light"] .salvbody h2{color:#87441f;font-size:24px;font-weight:600;}
+html[data-theme="heirloom_light"] .salvbody b{color:#4f5b42;}
+html[data-theme="heirloom_light"] .salvpsalm,html[data-theme="heirloom_light"] .salvverse{color:#4f5b42;font-size:18px;}
+html[data-theme="heirloom_light"] .salvverse{border-left:3px solid #899270;padding-left:16px;}
+html[data-theme="heirloom_light"] .salvref,html[data-theme="heirloom_light"] .salvsmall{color:#69533e;font-size:15px;}
+html[data-theme="heirloom_light"] .salvrule{color:#87441f;}
+html[data-theme="heirloom_light"] .salvprayer{background:#f0eadb;color:#493a2d;border:1px solid #b6a78d;border-image:none;border-radius:14px;padding:18px;font-size:18px;}
+html[data-theme="heirloom_light"] .salvcta{border-color:#b6a78d;}
+html[data-theme="heirloom_light"] .salvbtn{background:#8a4628;color:#fffaf0;border-color:#8a4628;font-size:18px;line-height:1.5;max-width:100%;}
+html[data-theme="heirloom_light"] .salvbtn:hover{background:#713820;color:#fffaf0;}
+html[data-theme="heirloom_light"] .salvback{background:#f0eadb;color:#493a2d;border-color:#998568;min-height:44px;font-size:17px;}
+html[data-theme="heirloom_light"] .salvback:hover{background:#e5dac5;color:#493a2d;}
+html[data-theme="heirloom_light"] .salvwrap :focus-visible,html[data-theme="heirloom_light"] .salvationlink:focus-visible{outline:3px solid #4f5b42;outline-offset:4px;}
 html[data-theme="heirloom_light"] p[style*="color:#c9b78f"],html[data-theme="heirloom_light"] p[style*="color:#a99c83"]{color:#76604a!important;}
 html[data-theme="heirloom_light"] .signoutdialog h2,html[data-theme="heirloom_light"] .signoutdialog p{color:#594631;}
 /* Nine-slice the supplied frame so the corners stay intact as the text grows. */
@@ -941,7 +977,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
   </div>
   <div class="addbar"><button class="ghost" id="famBtn" onclick="showFamily()" style="display:none">&larr; My Family</button><button class="ghost" onclick="editPerson()">Edit this person</button><button id="guidedAddFamilyBtn" onclick="openAdd()">+ Add a family member</button></div>
   <div class="themeshelfcontrol"><button class="ghost mini" onclick="openThemeChoiceFromShelf()">Theme / Appearance</button></div>
-  <div class="secretdoor" onclick="enterSecret()"><img src="assets/images/themes/lantern-heritage/secret-place/secret-door-app.png"/><div class="doorcaption">The Secret Place</div></div>
+  <div class="secretdoor" role="button" tabindex="0" aria-label="Enter the Secret Place" onclick="enterSecret()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSecret();}"><img src="assets/images/themes/lantern-heritage/secret-place/secret-door-app.png" alt="A warmly lit doorway into the Secret Place" loading="lazy" decoding="async"/><div class="doorcaption">The Secret Place</div></div>
   <div class="readletter"><button class="ghost" onclick="openLetter()">Read Elias&rsquo;s Letter</button></div>
   <section class="projectinvite" aria-labelledby="shelfProjectInviteTitle">
     <div class="inviteeyebrow">Share 90:12</div>
@@ -1602,6 +1638,7 @@ const THEME_ASSETS={
   palace:"assets/images/themes/lantern-heritage/palace-beautiful/palace-app.png",
   stones:"assets/images/themes/lantern-heritage/waymarks/cairn-stones-app.png",
   lantern:"assets/images/themes/lantern-heritage/lantern/lantern-icon-app.png",
+  door:"assets/images/themes/lantern-heritage/secret-place/secret-door-app.png",
   familyFlame:"assets/images/themes/lantern-heritage/lantern/globe-on-app.png"
  },
  heirloom_light:{
@@ -1609,6 +1646,7 @@ const THEME_ASSETS={
   palace:"assets/images/themes/heirloom-light/palace-beautiful/palace-app.png",
   stones:"assets/images/themes/heirloom-light/waymarks/twelve-stones-app.png",
   lantern:"assets/images/themes/heirloom-light/icons/app-icon-180-v3-app.png",
+  door:"assets/images/themes/heirloom-light/secret-place/secret-door-heirloom-light-cream-app.webp",
   familyFlame:""
  }
 };
@@ -3423,7 +3461,7 @@ function applyAppTheme(key,persist){
   const src=img.getAttribute('src');
   Object.values(THEME_ASSETS).forEach(function(previous){
    const i=previous.scenes.indexOf(src);if(i>=0)img.src=assets.scenes[i];
-   ['palace','stones','lantern'].forEach(function(kind){if(src===previous[kind])img.src=assets[kind];});
+   ['palace','stones','lantern','door'].forEach(function(kind){if(src===previous[kind])img.src=assets[kind];});
   });
  });
  document.querySelectorAll('.famstrip').forEach(function(strip){

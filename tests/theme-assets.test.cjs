@@ -16,8 +16,8 @@ function fixture(options={}){
    addEventListener(){},querySelector(){return null;},remove(){this.removed=true;}};
  }
  const frames=Array.from({length:9},(_,i)=>element(assets.lantern_heritage.scenes[i]));images.push(...frames);
- const cachedPalace=element(assets.lantern_heritage.palace),cachedStone=element(assets.lantern_heritage.stones),privatePhoto=element('blob:private-user-photo');
- images.push(cachedPalace,cachedStone,privatePhoto);
+ const cachedPalace=element(assets.lantern_heritage.palace),cachedStone=element(assets.lantern_heritage.stones),cachedDoor=element(assets.lantern_heritage.door),privatePhoto=element('blob:private-user-photo');
+ images.push(cachedPalace,cachedStone,cachedDoor,privatePhoto);
  const cards=['lantern_heritage','heirloom_light'].map(key=>{const e=element();e.setAttribute('data-theme',key);e.badge=element();e.querySelector=()=>e.badge;return e;});
  const nodes={themeContinueBtn:element(),themeBackBtn:element(),themeStatus:element(),emPalaceIcon:element(),emStonesIcon:element()};
  const splash=element(),heading=element(),strip={flame:null,querySelector(){return this.flame&&!this.flame.removed?this.flame:null;},appendChild(f){this.flame=f;}};
@@ -31,12 +31,12 @@ function fixture(options={}){
   isGuidedExperience:()=>false,openPerson:()=>{throw Error('Theme must not reopen or save a person');},openFirstJourney(){},
   savePeople:()=>{throw Error('Theme must not change memories');}};
  vm.createContext(env);vm.runInContext(definitions+themes,env);
- return {run:s=>vm.runInContext(s,env),env,doc,frames,images,cachedPalace,cachedStone,privatePhoto,strip,heading,splash,cards,storage,calls,toasts,events,view:()=>active};
+ return {run:s=>vm.runInContext(s,env),env,doc,frames,images,cachedPalace,cachedStone,cachedDoor,privatePhoto,strip,heading,splash,cards,storage,calls,toasts,events,view:()=>active};
 }
 test('each theme has nine distinct full scene files in its own namespace',()=>{
  for(const [key,set] of Object.entries(assets)){
   assert.equal(set.scenes.length,9);assert.equal(new Set(set.scenes).size,9);
-  for(const file of [...set.scenes,set.palace,set.stones,set.lantern,set.familyFlame].filter(Boolean)){
+  for(const file of [...set.scenes,set.palace,set.stones,set.lantern,set.door,set.familyFlame].filter(Boolean)){
    assert(file.startsWith('assets/images/themes/'+key.replaceAll('_','-')+'/'));
    assert(fs.existsSync(path.join(root,file)),file);
   }
@@ -79,6 +79,7 @@ test('applying light swaps existing cards, headings and markers without changing
  const f=fixture();f.run("applyAppTheme('heirloom_light',true)");
  assert.deepEqual(f.frames.map(i=>i.src),Array.from(assets.heirloom_light.scenes));
  assert.equal(f.cachedPalace.src,assets.heirloom_light.palace);assert.equal(f.cachedStone.src,assets.heirloom_light.stones);
+ assert.equal(f.cachedDoor.src,assets.heirloom_light.door);
  assert.equal(f.heading.src,assets.heirloom_light.stones);assert.equal(f.privatePhoto.src,'blob:private-user-photo');
  assert.equal(f.storage.get('9012_visual_theme'),'heirloom_light');assert.equal(f.env.icon,'heirloom_light');
 });
@@ -86,6 +87,7 @@ test('switching back restores every scene and the correct family flame with no d
  const f=fixture();f.run("applyAppTheme('heirloom_light');applyAppTheme('lantern_heritage');applyAppTheme('lantern_heritage')");
  assert.deepEqual(f.frames.map(i=>i.src),Array.from(assets.lantern_heritage.scenes));
  assert.equal(f.strip.flame.src,assets.lantern_heritage.familyFlame);assert.equal(f.cachedPalace.src,assets.lantern_heritage.palace);
+ assert.equal(f.cachedDoor.src,assets.lantern_heritage.door);
 });
 test('light verse and quote frame switches independently and restores the Heritage frame',()=>{
  const f=fixture(),light='assets/images/themes/heirloom-light/backgrounds/wisdom-frame-heirloom-light-app.webp';
