@@ -55,6 +55,12 @@
 .guideheader button{min-height:44px;flex:none;padding:10px 18px;}
 .guidebody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px 26px 26px;}
 .guideintro{margin:0 0 18px;font-size:18px;line-height:1.5;color:#e0d3bc;}
+.guidemap{margin:0 0 26px;}
+.guidemap img{display:block;width:100%;height:auto;border-radius:8px;}
+.guidemap figcaption{margin-top:10px;font-size:16px;line-height:1.5;}
+.guidemap a{color:inherit;text-decoration:underline;text-underline-offset:3px;}
+.guidemap .guidemapfull{display:inline-block;min-height:44px;padding:10px 0;}
+.guidemap a:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
 .guidestart{padding:18px 20px;margin-bottom:26px;border-left:3px solid #d2b46c;border-radius:0 12px 12px 0;background:#302416;}
 .guidestart h3{margin:0 0 6px;font-size:23px;color:#f0dca7;}
 .guidestart p{margin:0;font-size:17px;line-height:1.5;}
@@ -539,6 +545,10 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
   <div class="guideheader"><h2 id="appGuideTitle">Explore 90:12</h2><button type="button" class="ghost" aria-label="Close Explore 90:12 guide" onclick="close9012Guide()" autofocus>Close</button></div>
   <div class="guidebody" id="appGuideBody">
     <p class="guideintro" id="appGuideIntro">90:12 helps you notice your days, keep the stories that matter, and pass on what life has taught you. Here is how its spaces fit together.</p>
+    <figure class="guidemap" id="appGuideMap">
+      <a href="assets/images/shared/guides/explore-9012-connections-app.webp" target="_blank" rel="noopener" aria-label="Open the Explore 90:12 illustrated map full size in a new tab"><img src="assets/images/shared/guides/explore-9012-connections-app.webp" width="992" height="1586" loading="lazy" decoding="async" alt="The 90:12 Project: a visual map connecting the Shelf, Waymarks, Wisdom, Secret Place, Journal, Captain’s Chart, family memories, and Palace Beautiful. Written explanations follow below."/></a>
+      <figcaption><a class="guidemapfull" href="assets/images/shared/guides/explore-9012-connections-app.webp" target="_blank" rel="noopener">Open full-size map (new tab)</a><br>This map includes the vision for future connections. The written guide below identifies what is available today and what is <strong>Planned</strong>.</figcaption>
+    </figure>
     <div class="guidestart"><h3>New here? Start with one moment.</h3><p>Open your Shelf, choose <strong>+ Waymark</strong>, and write something you want to remember. Save it when you are ready. You can explore the other spaces as your story grows.</p></div>
     <section class="guidegroup" aria-labelledby="guideGroup1">
       <div class="guidegrouphead"><span aria-hidden="true">01</span><h3 id="guideGroup1">Your life, in perspective</h3></div>
