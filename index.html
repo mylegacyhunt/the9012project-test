@@ -506,7 +506,8 @@ html[data-theme="heirloom_light"] .coachbody{color:#665039;}html[data-theme="hei
 html[data-theme="heirloom_light"] .secretverse{color:#75604a;}
 html[data-theme="heirloom_light"] p[style*="color:#c9b78f"],html[data-theme="heirloom_light"] p[style*="color:#a99c83"]{color:#76604a!important;}
 html[data-theme="heirloom_light"] .signoutdialog h2,html[data-theme="heirloom_light"] .signoutdialog p{color:#594631;}
-html[data-theme="heirloom_light"] .wisdomcard{border:8px double #b3a07c;border-image:none;background:#fffcf3;filter:drop-shadow(0 8px 14px rgba(82,61,36,.15));}
+/* Nine-slice the supplied frame so the corners stay intact as the text grows. */
+html[data-theme="heirloom_light"] .wisdomcard{border:clamp(24px,5vw,44px) solid transparent;border-left-width:clamp(34px,7vw,62px);border-right-width:clamp(34px,7vw,62px);border-image:var(--frame) 170 240 fill stretch;background:#fff8e8;padding:12px clamp(8px,2vw,18px);overflow-wrap:anywhere;filter:drop-shadow(0 8px 14px rgba(82,61,36,.15));}
 html[data-theme="heirloom_light"] .wisdomcard .quote{color:#59472f;}
 html[data-theme="heirloom_light"] .guidedbanner{background:#eef0e4;color:#5c634c;border-color:#adb696;}html[data-theme="heirloom_light"] .guidedbanner strong{color:#4c583d;}
 html[data-theme="heirloom_light"] .firstjourney .journeylead,html[data-theme="heirloom_light"] .privacyexplain,html[data-theme="heirloom_light"] .screenlockinfo,html[data-theme="heirloom_light"] .phoneiconexamples small{color:#76634e;}
@@ -3402,7 +3403,7 @@ function applyAppTheme(key,persist){
  if(typeof cancelSecretWalk==='function')cancelSecretWalk();
  currentThemeKey=knownThemeKey(key);const assets=THEME_ASSETS[currentThemeKey];STRIPS=assets.scenes.slice();PALACE=assets.palace;CAIRN=assets.stones;LANTERN=assets.lantern;FAMILY_FLAME=assets.familyFlame;
  document.documentElement.setAttribute('data-theme',currentThemeKey);
- document.documentElement.style.setProperty('--frame',currentThemeKey==='lantern_heritage'?"url('assets/images/themes/lantern-heritage/backgrounds/frame-texture-app.jpg')":'none');
+ document.documentElement.style.setProperty('--frame',currentThemeKey==='lantern_heritage'?"url('assets/images/themes/lantern-heritage/backgrounds/frame-texture-app.jpg')":"url('assets/images/themes/heirloom-light/backgrounds/wisdom-frame-heirloom-light-app.webp')");
  document.documentElement.style.setProperty('--cream',currentThemeKey==='lantern_heritage'?"url('assets/images/themes/lantern-heritage/backgrounds/cream-texture-app.png')":'none');
  document.documentElement.style.setProperty('--family-parchment',currentThemeKey==='lantern_heritage'?"url('assets/images/themes/lantern-heritage/family/family-parchment-app.png')":'none');
  document.querySelectorAll('.scene .frame').forEach(function(img,i){if(STRIPS[i])img.src=STRIPS[i];});

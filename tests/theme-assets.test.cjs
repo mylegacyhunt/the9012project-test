@@ -10,7 +10,7 @@ const nameHelpers=section('function cleanNamePart(v)','function householdHeadPer
 function fixture(options={}){
  const storage=new Map(Object.entries(options.storage||{})),events={},images=[];
  function element(src=''){
-  const attributes={src},classes=new Set();return {src,style:{setProperty(){}},dataset:{},disabled:false,textContent:'',
+  const attributes={src},classes=new Set(),properties={};return {src,style:{setProperty(k,v){properties[k]=v;},getPropertyValue(k){return properties[k]||'';}},dataset:{},disabled:false,textContent:'',
    classList:{add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,on){on?classes.add(k):classes.delete(k);}},
    setAttribute(k,v){attributes[k]=v;},getAttribute(k){return k==='src'?this.src:attributes[k]||null;},
    addEventListener(){},querySelector(){return null;},remove(){this.removed=true;}};
@@ -86,6 +86,15 @@ test('switching back restores every scene and the correct family flame with no d
  const f=fixture();f.run("applyAppTheme('heirloom_light');applyAppTheme('lantern_heritage');applyAppTheme('lantern_heritage')");
  assert.deepEqual(f.frames.map(i=>i.src),Array.from(assets.lantern_heritage.scenes));
  assert.equal(f.strip.flame.src,assets.lantern_heritage.familyFlame);assert.equal(f.cachedPalace.src,assets.lantern_heritage.palace);
+});
+test('light verse and quote frame switches independently and restores the Heritage frame',()=>{
+ const f=fixture(),light='assets/images/themes/heirloom-light/backgrounds/wisdom-frame-heirloom-light-app.webp';
+ assert(fs.existsSync(path.join(root,light)));
+ f.run("applyAppTheme('heirloom_light')");assert.equal(f.doc.documentElement.style.getPropertyValue('--frame'),"url('"+light+"')");
+ f.run("applyAppTheme('lantern_heritage')");assert.equal(f.doc.documentElement.style.getPropertyValue('--frame'),"url('assets/images/themes/lantern-heritage/backgrounds/frame-texture-app.jpg')");
+ const css=html.match(/html\[data-theme="heirloom_light"\] \.wisdomcard\{([^}]+)\}/)[1];
+ assert.match(css,/border-image:var\(--frame\) 170 240 fill stretch/);
+ assert.match(css,/overflow-wrap:anywhere/);assert.doesNotMatch(css,/(?:^|;)(?:height|max-height):/);
 });
 test('saved theme loads, invalid keys fall back, and cross-tab storage refresh swaps art too',()=>{
  const f=fixture({storage:{'9012_visual_theme':'heirloom_light'}});assert.equal(f.run('currentThemeKey'),'heirloom_light');
