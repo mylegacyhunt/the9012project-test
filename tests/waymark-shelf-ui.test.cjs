@@ -56,3 +56,12 @@ test('desktop shelf enlarges without changing either theme scene ratio',()=>{
  assert.match(html,/\.scene\{position:relative;width:100%;aspect-ratio:1536\/1024/);
  assert.match(html,/html\[data-theme="heirloom_light"\] \.scene\{aspect-ratio:4\/3/);
 });
+
+test('lantern flicker is added only to light-theme artwork and respects reduced motion',()=>{
+ assert.match(html,/html\[data-theme="heirloom_light"\] \.scene::after,html\[data-theme="heirloom_light"\] \.famstrip::after\{/);
+ assert.match(html,/html\[data-theme="heirloom_light"\] \.secretdoor::before\{/);
+ assert.match(html,/@keyframes heirloomLanternGlow/);
+ assert.match(html,/@media\(prefers-reduced-motion:reduce\).*heirloomLanternGlow|@media\(prefers-reduced-motion:reduce\).*animation:none/s);
+ assert.equal((html.match(/@keyframes flickerFlame\{/g)||[]).length,1,'Heritage flame animation remains unchanged');
+ assert.doesNotMatch(html,/html\[data-theme="lantern_heritage"\].*heirloomLanternGlow/);
+});
