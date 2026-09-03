@@ -348,15 +348,9 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
 .remembrance{margin-top:28px;}
 .rhead{text-align:center;margin-bottom:14px;} .rhead h2{font-family:'Cormorant Garamond',serif;color:#C9A84C;font-weight:500;margin:0;font-size:23px;} .rhead p{color:#a99c83;font-style:italic;font-size:13px;margin:4px auto 0;max-width:460px;line-height:1.5;}
 .answered .pmeta{color:#4a6a24;} .prayeddays{margin-top:10px;font-family:'Cormorant Garamond',serif;} .prayeddays summary{color:#4a6a24;font-style:italic;font-size:13px;cursor:pointer;} .dayslist{margin-top:6px;font-size:13px;color:#5a4a2a;line-height:1.6;} .answered .answerline{font-family:'EB Garamond',serif;color:#2f4a18;font-style:italic;margin-top:8px;border-top:1px dashed rgba(90,110,40,.4);padding-top:8px;}
-.secretseq{position:fixed;inset:0;z-index:130;background:#0b0704;display:none;cursor:pointer;overflow:hidden;}
+.secretseq{position:fixed;inset:0;z-index:58;background:#0b0704;display:none;cursor:pointer;overflow:hidden;}
 .secretseq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform-origin:60% 60%;will-change:opacity,transform;}
 .secretseq img:nth-child(2){object-fit:contain;}
-.secretseq .walkcontrols{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:2;display:flex;gap:10px;}
-.secretseq .walkcontrols button{background:rgba(25,19,12,.88);color:#fff5de;border:1px solid #cbb68a;padding:10px 16px;}
-.secretseq .walkstatus{position:absolute;inset:40% 20px auto;text-align:center;color:#fff5de;font-size:18px;}
-html[data-theme="heirloom_light"] .secretseq{background:#f5eddf;}
-html[data-theme="heirloom_light"] .secretseq .walkcontrols button{background:rgba(255,250,238,.95);color:#57432e;border-color:#947c5c;}
-html[data-theme="heirloom_light"] .secretseq .walkstatus{color:#57432e;}
 
 .creamsheet{position:relative;}
 .pagedate{position:absolute;top:16px;right:22px;font-family:'Cormorant Garamond',serif;color:#7a5a24;font-size:13px;letter-spacing:.05em;z-index:2;}
@@ -497,13 +491,12 @@ html[data-theme="heirloom_light"] .secretdoor{min-height:230px;border:1px solid 
 html[data-theme="heirloom_light"] .secretdoor img{display:none;}html[data-theme="heirloom_light"] .secretdoor .doorcaption{font-size:15px;letter-spacing:.16em;color:#5d513f;}
 .lightletter{display:none;}
 html[data-theme="heirloom_light"] .lightletter{display:block;max-width:660px;margin:28px auto;padding:32px 26px;background:#fffaf0;color:#584330;border:1px solid #ccba9d;border-radius:12px;font-family:'EB Garamond',Georgia,serif;font-size:20px;line-height:1.6;}
-html[data-theme="heirloom_light"] .letterimg,html[data-theme="heirloom_light"] #splashWoman{display:none!important;}
+html[data-theme="heirloom_light"] .letterimg,html[data-theme="heirloom_light"] #splashWoman,html[data-theme="heirloom_light"] #secretSeq{display:none!important;}
+html[data-theme="heirloom_light"] button[onclick="replaySecretJourney()"]{display:none;}
 html[data-theme="heirloom_light"] .splash{background:#f5eddf;}
 html[data-theme="heirloom_light"] #splashLogo img{width:min(512px,90vw);max-height:90vh;animation:none;}
 html[data-theme="heirloom_light"] .gate p,html[data-theme="heirloom_light"] .writer p.small,html[data-theme="heirloom_light"] .hint,html[data-theme="heirloom_light"] .firstjourney .eyebrow{color:#76604a;}
 html[data-theme="heirloom_light"] .legacyBegin{color:#665039;text-shadow:none;}
-html[data-theme="heirloom_light"] .coachbody{color:#665039;}html[data-theme="heirloom_light"] .coachbody b{color:#57412c;}
-html[data-theme="heirloom_light"] .secretverse{color:#75604a;}
 html[data-theme="heirloom_light"] p[style*="color:#c9b78f"],html[data-theme="heirloom_light"] p[style*="color:#a99c83"]{color:#76604a!important;}
 html[data-theme="heirloom_light"] .signoutdialog h2,html[data-theme="heirloom_light"] .signoutdialog p{color:#594631;}
 html[data-theme="heirloom_light"] .wisdomcard{border:8px double #b3a07c;border-image:none;background:#fffcf3;filter:drop-shadow(0 8px 14px rgba(82,61,36,.15));}
@@ -525,7 +518,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
 <div class="splash" id="splashLogo" onclick="fadeLogo()"><img src="assets/images/themes/lantern-heritage/other/9012-logo-app.jpg" alt="90:12 The Project"/></div>
 <div class="splash" id="splashWoman" onclick="fadeWoman()"><img src="assets/images/themes/lantern-heritage/other/splash-woman-app.jpg" alt="A letter, handed to you"/></div>
-<div class="secretseq" id="secretSeq" role="dialog" aria-modal="true" aria-label="Walk into the Secret Place" tabindex="-1"><img alt=""/><img alt=""/><img alt=""/><img alt=""/><img alt=""/><div class="walkstatus" role="status" aria-live="polite"></div><div class="walkcontrols"><button type="button" data-walk-next>Next view</button><button type="button" data-walk-skip>Enter now</button></div></div>
+<div class="secretseq" id="secretSeq"><img src="assets/images/themes/lantern-heritage/journal/introduction-letter-app.jpg"/><img src="assets/images/themes/lantern-heritage/secret-place/secret-sequence-01-app.jpg"/><img src="assets/images/themes/lantern-heritage/secret-place/secret-sequence-02-app.jpg"/><img src="assets/images/themes/lantern-heritage/secret-place/secret-sequence-03-app.jpg"/><img src="assets/images/themes/lantern-heritage/secret-place/secret-sequence-04-app.jpg"/></div>
 <dialog class="signoutdialog" id="signOutDialog" aria-labelledby="signOutTitle" aria-describedby="signOutDescription" oncancel="if(signOutBusy)event.preventDefault()" onkeydown="if(event.key==='Escape'){event.preventDefault();closeSignOut9012();}">
   <h2 id="signOutTitle">Sign out of this device?</h2>
   <p id="signOutDescription">Your saved memories stay in your account. We&rsquo;ll check that they are saved online before clearing this device&rsquo;s local copy.</p>
@@ -1629,7 +1622,7 @@ function applyExperienceUI(){
   const familyBtn=el('famBtn');if(familyBtn)familyBtn.style.display=(people.length>1&&(!guided||level>=4))?'inline-block':'none';
   const addFamily=el('guidedAddFamilyBtn');if(addFamily)addFamily.style.display=(!guided||level>=4)?'':'none';
 }
-function show(id){if(passwordRecovery.active&&id!=='viewResetPassword')id='viewResetPassword';if(window.app9012WaymarkVoice)window.app9012WaymarkVoice.cancelAll();if(!guidedViewAllowed(id))id='viewJar';if(typeof cancelSecretWalk==='function'&&id!=='viewSecret')cancelSecretWalk();const before=activeViewId();if(before==='viewSecret'&&id!=='viewSecret'&&typeof clearSecretResumeMarker==='function')clearSecretResumeMarker();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewFamilyPhotos','viewWaymarks','view12Stones','viewWisdom','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=((inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp'||id==='viewRecentlyDeleted')&&(!isGuidedExperience(P())||guidedFeatureLevel(P())>=4))?'flex':'none';applyExperienceUI();if(appNavigationReady&&!appHistoryLock&&before&&before!==id){try{appHistoryDepth++;history.pushState(Object.assign({},history.state||{},{app9012View:id,app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}}window.scrollTo({top:0,behavior:'smooth'});}
+function show(id){if(passwordRecovery.active&&id!=='viewResetPassword')id='viewResetPassword';if(window.app9012WaymarkVoice)window.app9012WaymarkVoice.cancelAll();if(!guidedViewAllowed(id))id='viewJar';const before=activeViewId();if(before==='viewSecret'&&id!=='viewSecret'&&typeof clearSecretResumeMarker==='function')clearSecretResumeMarker();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));el(id).classList.add('active');var inApp=['viewJar','viewFamily','viewFamilyPhotos','viewWaymarks','view12Stones','viewWisdom','viewChart'].indexOf(id)>=0;var eb=el('eraseBar');if(eb)eb.style.display=inApp?'block':'none';var kb=el('keepsakeBar');if(kb)kb.style.display=inApp?'flex':'none';var hl=el('howLink');if(hl)hl.style.display=inApp?'inline':'none';var db=el('doorsBtn');if(db)db.style.display=((inApp||id==='viewSecret'||id==='viewJournal'||id==='viewHelp'||id==='viewRecentlyDeleted')&&(!isGuidedExperience(P())||guidedFeatureLevel(P())>=4))?'flex':'none';applyExperienceUI();if(appNavigationReady&&!appHistoryLock&&before&&before!==id){try{appHistoryDepth++;history.pushState(Object.assign({},history.state||{},{app9012View:id,app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}}window.scrollTo({top:0,behavior:'smooth'});}
 function armAppHistory(){try{appHistoryDepth=Number(history.state&&history.state.app9012Depth)||0;history.replaceState(Object.assign({},history.state||{},{app9012View:activeViewId()||'viewLetter',app9012Depth:appHistoryDepth}),'',location.href);}catch(e){}appNavigationReady=true;}
 function prepareHistoryView(id){if(id==='viewFamily')renderFamily();else if(id==='viewFamilyPhotos')loadFamilyPhotoAlbum();else if(id==='viewWaymarks')renderWaymarks();else if(id==='view12Stones')render12Stones();else if(id==='viewWisdom')renderWisdomHub();else if(id==='viewChart')renderChart();else if(id==='viewJournal')renderJournal();else if(id==='viewRecentlyDeleted')renderRecentlyDeleted();if(['viewJar','viewFamily','viewFamilyPhotos','viewWaymarks','view12Stones','viewWisdom','viewChart'].indexOf(id)>=0)markTabs(id);}
 function appBack(fallback){if(appNavigationReady&&appHistoryDepth>0){history.back();return;}if(fallback==='viewJar')openMyShelf();else show(fallback||'viewJar');}
@@ -3280,63 +3273,33 @@ var SCOMFORT=['&ldquo;Fear thou not; for I am with thee: be not dismayed; for I 
 var SPROMPTS=['What is weighing on your heart today?','What are you thankful for right now?','Where do you need God&rsquo;s help this week?','What has God done that you don&rsquo;t want to forget?','Who needs your prayers today?','What are you afraid of &mdash; and what does God say about it?','What sin do you need to lay down before Him?'];
 var _scIdx=0;
 function enterSecret(){openModal('gateModal');}
-function secretWalkSeenKey(){return '9012_secret_intro_'+currentThemeKey+'_'+(P()&&P().id||'local');}
-function secretIntroComplete(){if(currentThemeKey==='lantern_heritage')return !!(P()&&P().secretIntroCompleted);try{return localStorage.getItem(secretWalkSeenKey())==='yes';}catch(e){return false;}}
-function markSecretIntroComplete(){var p=P();if(!p)return;if(currentThemeKey==='lantern_heritage'){if(!p.secretIntroCompleted){p.secretIntroCompleted=true;savePeople();}}else{try{localStorage.setItem(secretWalkSeenKey(),'yes');}catch(e){}}}
+function secretIntroComplete(){return !!(P()&&P().secretIntroCompleted);}
+function markSecretIntroComplete(){var p=P();if(p&&!p.secretIntroCompleted){p.secretIntroCompleted=true;savePeople();}}
 function unlockSecret(){closeModal('gateModal');if(secretIntroComplete()){openSecretRoom();return;}playSecretSeq();}
 function replaySecretJourney(){playSecretSeq();}
 function showSeq(e){e.style.display='flex';requestAnimationFrame(function(){e.classList.add('show');});}
 function hideSeq(e){e.classList.remove('show');setTimeout(function(){e.style.display='none';},900);}
-const SECRET_JOURNEYS={
- lantern_heritage:{frames:['assets/images/themes/lantern-heritage/journal/introduction-letter-app.jpg','assets/images/themes/lantern-heritage/secret-place/secret-sequence-01-app.jpg','assets/images/themes/lantern-heritage/secret-place/secret-sequence-02-app.jpg','assets/images/themes/lantern-heritage/secret-place/secret-sequence-03-app.jpg','assets/images/themes/lantern-heritage/secret-place/secret-sequence-04-app.jpg'],origins:['50% 48%','50% 50%','55% 58%','55% 60%','50% 58%']},
- heirloom_light:{frames:['assets/images/themes/heirloom-light/secret-place/secret-walk-01-doorway-app.webp','assets/images/themes/heirloom-light/secret-place/secret-walk-02-room-app.webp','assets/images/themes/heirloom-light/secret-place/secret-walk-03-approach-app.webp','assets/images/themes/heirloom-light/secret-place/secret-walk-04-table-app.webp','assets/images/themes/heirloom-light/secret-place/secret-walk-05-writing-desk-app.webp'],origins:['62% 52%','55% 55%','56% 58%','54% 60%','50% 58%']}
-};
-var cancelSecretWalk=null;
 function playSecretSeq(){
- if(cancelSecretWalk)cancelSecretWalk();
- var owner=P(),theme=currentThemeKey,config=SECRET_JOURNEYS[theme];if(!owner||!config)return;
- var sessionOwner=typeof currentSession!=='undefined'&&currentSession&&currentSession.user?currentSession.user.id:null;
+ // Light-theme cinematic artwork has not been supplied. Keep the private room
+ // working without borrowing Heritage artwork or marking its introduction seen.
+ if(currentThemeKey==='heirloom_light'){openSecretRoom();return;}
  var seq=el('secretSeq'),imgs=[].slice.call(seq.querySelectorAll('img')),roomAlreadyOpen=el('viewSecret').classList.contains('active');
- var hold=[1500,1900,1900,1900,2100],zoom=[1.08,1.05,1.13,1.15,1.10],XF=1200;
- var status=seq.querySelector('.walkstatus'),next=seq.querySelector('[data-walk-next]'),skip=seq.querySelector('[data-walk-skip]');
- var i=-1,done=false,waiting=false,advanceTimer=null,timers=[],loads=[];
- function sameOwner(){var sessionNow=typeof currentSession!=='undefined'&&currentSession&&currentSession.user?currentSession.user.id:null;return P()&&P().id===owner.id&&currentThemeKey===theme&&sessionNow===sessionOwner;}
- function later(fn,ms){var t=setTimeout(fn,ms);timers.push(t);return t;}
- function cleanup(){done=true;timers.forEach(clearTimeout);loads.forEach(function(job){job.stop();});seq.onclick=seq.onkeydown=null;next.onclick=skip.onclick=null;seq.style.display='none';seq.style.opacity='';status.textContent='';imgs.forEach(function(im){im.style.opacity='0';im.style.transform='scale(1)';});if(cancelSecretWalk===cleanup)cancelSecretWalk=null;}
- function finish(completed){
-  if(done)return;if(!sameOwner()){cleanup();return;}done=true;timers.forEach(clearTimeout);loads.forEach(function(job){job.stop();});
-  if(completed)markSecretIntroComplete();if(!roomAlreadyOpen)openSecretRoom();
-  seq.onclick=seq.onkeydown=null;next.onclick=skip.onclick=null;seq.style.transition='opacity '+XF+'ms ease';seq.style.opacity='0';
-  later(function(){cleanup();var target=el('viewSecret').querySelector('button');if(target)target.focus();},XF);
+ var hold=[1500,1900,1900,1900,2100],zoom=[1.08,1.05,1.13,1.15,1.10],org=['50% 48%','50% 50%','55% 58%','55% 60%','50% 58%'];
+ var XF=1200; seq.style.display='block';seq.style.opacity='1';
+ imgs.forEach(function(im){im.style.transition='none';im.style.opacity='0';im.style.transform='scale(1)';});
+ var i=0,timers=[];
+ function clearT(){timers.forEach(clearTimeout);timers=[];}
+ function playFrame(n){var im=imgs[n];
+   im.style.transition='none';im.style.transform='scale(1)';im.style.transformOrigin=org[n];im.style.opacity='0';
+   requestAnimationFrame(function(){im.style.transition='opacity '+XF+'ms ease, transform '+((hold[n]+XF*2)/1000)+'s ease-in';im.style.opacity='1';im.style.transform='scale('+zoom[n]+')';}); // dissolve in + slow move
+   if(n>0){var pv=imgs[n-1];timers.push(setTimeout(function(){pv.style.transition='opacity '+XF+'ms ease';pv.style.opacity='0';},XF+40));} // hide previous once covered
+   timers.push(setTimeout(advance,hold[n]+XF)); // crossfade to next
  }
- cancelSecretWalk=cleanup;
- // Preserve the quiet experience for people who request reduced motion.
- if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){markSecretIntroComplete();if(!roomAlreadyOpen)openSecretRoom();cleanup();return;}
- seq.style.transition='none';seq.style.display='block';seq.style.opacity='1';status.textContent='Opening the Secret Place…';next.disabled=true;skip.disabled=false;skip.focus();
- imgs.forEach(function(im,n){
-  im.style.transition='none';im.style.opacity='0';im.style.transform='scale(1)';im.style.objectFit=theme==='lantern_heritage'&&n===1?'contain':'cover';im.style.objectPosition=config.origins[n];
-  var settle,timeout,settled=false;var promise=new Promise(function(resolve){settle=function(ok){if(settled)return;settled=true;clearTimeout(timeout);im.onload=im.onerror=null;resolve(ok);};});
-  im.onload=function(){settle(true);};im.onerror=function(){settle(false);};timeout=later(function(){settle(false);},20000);
-  im.src=config.frames[n];if(im.complete&&im.naturalWidth>0)settle(true);
-  loads.push({ready:promise,stop:function(){settle(false);}});
- });
- async function playFrame(n){
-  if(done||waiting)return;if(!sameOwner()){cleanup();return;}waiting=true;next.disabled=true;clearTimeout(advanceTimer);
-  var loaded=await loads[n].ready;
-  if(done)return;if(!sameOwner()){cleanup();return;}
-  if(!loaded){if(typeof showToast==='function')showToast('<span>The walk-in image could not load. Your Secret Place is still available; you can replay the journey later.</span>');finish(false);return;}
-  var previous=i;i=n;waiting=false;next.disabled=false;status.textContent='';seq.dataset.frame=String(n+1);var im=imgs[n];
-  im.style.transition='none';im.style.transform='scale(1)';im.style.transformOrigin=config.origins[n];
-  requestAnimationFrame(function(){if(done)return;im.style.transition='opacity '+XF+'ms ease, transform '+((hold[n]+XF*2)/1000)+'s ease-in';im.style.opacity='1';im.style.transform='scale('+zoom[n]+')';});
-  // Keep the previous image visible underneath until the incoming image covers it.
-  if(previous>=0)later(function(){imgs[previous].style.opacity='0';},XF+40);
-  advanceTimer=later(advance,hold[n]+XF);
- }
- function advance(){if(done||waiting)return;clearTimeout(advanceTimer);if(i+1<imgs.length)playFrame(i+1);else finish(true);}
- next.onclick=function(e){e.stopPropagation();advance();};skip.onclick=function(e){e.stopPropagation();finish(true);};seq.onclick=advance;
- seq.onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();finish(true);}else if(e.key==='Tab'){e.preventDefault();(document.activeElement===skip&&!next.disabled?next:skip).focus();}};
- playFrame(0);
-}
+ function advance(){clearT();i++;if(i<imgs.length){playFrame(i);}else{finish();}}
+ function finish(){markSecretIntroComplete();if(!roomAlreadyOpen)openSecretRoom();seq.style.transition='opacity '+XF+'ms ease';seq.style.opacity='0'; // dissolve last frame straight into the page (no black)
+   timers.push(setTimeout(function(){seq.style.display='none';seq.style.opacity='';imgs.forEach(function(x){x.style.opacity='0';x.style.transform='scale(1)';});},XF));}
+ function skip(){clearT();advance();}
+ seq.onclick=skip; playFrame(0);}
 var curHand='spencer';
 function currentHand(){return (people[cur]&&people[cur].hand)||curHand||'spencer';}
 function applyHand(h){var pb=el('prayerBody');if(pb){pb.classList.remove('hand-spencer','hand-vibes','hand-dancing','hand-caveat','hand-print','hand-note','hand-neat','hand-serif','hand-times');pb.classList.add('hand-'+h);}document.querySelectorAll('.handchip').forEach(function(c){c.classList.toggle('on',c.dataset.h===h);});}
@@ -3399,7 +3362,6 @@ let themeChoiceOnboarding=false,selectedThemeKey='lantern_heritage',themeCatalog
 function knownThemeKey(key){return Object.prototype.hasOwnProperty.call(THEME_ASSETS,key)?key:'lantern_heritage';}
 function storedThemeKey(){try{return knownThemeKey(localStorage.getItem(VISUAL_THEME_KEY)||(window.app9012Icons&&window.app9012Icons.getTheme())||'lantern_heritage');}catch(e){return 'lantern_heritage';}}
 function applyAppTheme(key,persist){
- if(typeof cancelSecretWalk==='function')cancelSecretWalk();
  currentThemeKey=knownThemeKey(key);const assets=THEME_ASSETS[currentThemeKey];STRIPS=assets.scenes.slice();PALACE=assets.palace;CAIRN=assets.stones;LANTERN=assets.lantern;FAMILY_FLAME=assets.familyFlame;
  document.documentElement.setAttribute('data-theme',currentThemeKey);
  document.documentElement.style.setProperty('--frame',currentThemeKey==='lantern_heritage'?"url('assets/images/themes/lantern-heritage/backgrounds/frame-texture-app.jpg')":'none');
