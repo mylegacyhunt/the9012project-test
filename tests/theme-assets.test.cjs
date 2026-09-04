@@ -137,6 +137,10 @@ test('a synthetic 39-year-old profile renders near-half family jars with an 81-y
   assert.equal(JSON.stringify(person),before,'Rendering must not change the birth date or lifespan');
  }
 });
+test('Heritage uses the corrected nearly half-and-half artwork for its midpoint stage',()=>{
+ assert.equal(assets.lantern_heritage.scenes[4],'assets/images/themes/lantern-heritage/lantern/lantern-scene-04-half-corrected-app.jpg');
+ assert(fs.existsSync(path.join(root,assets.lantern_heritage.scenes[4])));
+});
 test('family cards use given names without changing full names or personal records',()=>{
  const people=[
   {name:'Alex Morgan Example',first_name:'Alex',middle_name:'Morgan',last_name:'Example'},
