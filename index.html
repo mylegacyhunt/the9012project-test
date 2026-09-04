@@ -1186,7 +1186,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
   <input type="text" id="eraseGate" autocomplete="off" autocapitalize="characters" placeholder="ERASE" oninput="checkErase()" style="text-align:center;letter-spacing:.3em;margin:0 0 14px"/>
   <div class="mrow"><button class="ghost" onclick="closeModal('eraseModal')">Cancel</button><button class="danger" id="eraseGo" disabled style="opacity:.4" onclick="doEraseAll()">Erase my 90:12 data</button></div>
 </div></div><div class="modal" id="answerModal"><div class="mbox"><h3>He answered</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px">How did God answer this prayer?</p><textarea id="answerNote" placeholder="Tell what He did..."></textarea><div class="mrow"><button class="ghost" onclick="closeModal('answerModal')">Cancel</button><button onclick="saveAnswer()">Mark answered</button></div></div></div><div class="modal" id="gateModal"><div class="mbox" style="text-align:center"><h3>The Secret Place</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 6px">&ldquo;He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.&rdquo;</p><p style="color:#7c7059;font-size:12px;margin:0 0 14px">Psalm 91:1</p><p class="privacyexplain">Journal entries inside can use a separate screen lock.</p><div class="mrow" style="justify-content:center"><button onclick="unlockSecret()">Enter the Secret Place</button></div></div></div>
-<div class="modal" id="screenLockInfoModal"><div class="mbox"><h3>What the journal screen lock protects</h3><p class="screenlockinfo"><strong>It helps prevent casual viewing on this device.</strong> It does not encrypt journal entries and cannot protect them from someone who has access to this browser&rsquo;s stored website data.</p><p class="screenlockinfo">The Journal relocks after five minutes without activity, when this page is hidden, and when the browser closes.</p><div class="mrow"><button onclick="closeModal('screenLockInfoModal')">I understand</button></div></div></div>
+<div class="modal" id="screenLockInfoModal"><div class="mbox"><h3>What the journal screen lock protects</h3><p class="screenlockinfo"><strong>It helps prevent casual viewing on this device.</strong> It does not encrypt journal entries and cannot protect them from someone who has access to this browser&rsquo;s stored website data.</p><p class="screenlockinfo">Your passcode itself is never kept or synced in readable form. Only a scrambled fingerprint of it is stored, so the passcode cannot be read from this device or from the 90:12 servers.</p><p class="screenlockinfo">The Journal relocks after five minutes without activity, when this page is hidden, and when the browser closes.</p><div class="mrow"><button onclick="closeModal('screenLockInfoModal')">I understand</button></div></div></div>
 <script>
 /* ============================================================
    90:12 — SUPABASE CONNECTION (STEP 3A)
@@ -1362,7 +1362,7 @@ async function legacyCloudSave(){
   if(!supabaseClient||!currentSession)return;
   const r=await supabaseClient.from('keepsakes').upsert({
     user_id:currentSession.user.id,
-    people:people,
+    people:stripJournalSecrets(people),
     released_people:releasedPeople,
     updated_at:new Date().toISOString()
   },{onConflict:'user_id'});
@@ -1425,7 +1425,7 @@ async function loadCloudForSessionNow(){
     }
     if(seedPeople.length){
       people=seedPeople;releasedPeople=seedReleased;
-      const b=await supabaseClient.rpc('app9012_bootstrap',{p_people:people,p_released:releasedPeople});
+      const b=await supabaseClient.rpc('app9012_bootstrap',{p_people:stripJournalSecrets(people),p_released:releasedPeople});
       if(b.error)throw b.error;
       if(applyCloudContext(b.data)){await refreshFamilyConnectionStates();await writeLocalCache();if(onboardingResetNeeded){onboardingResetNeeded=false;queueCloudSave();}}
     }
@@ -1469,7 +1469,7 @@ async function cloudSaveNow(){
   cloudSaving=true;
   try{
     if(cloudMode==='household'){
-      const r=await supabaseClient.rpc('app9012_save',{p_people:people,p_released:releasedPeople});
+      const r=await supabaseClient.rpc('app9012_save',{p_people:stripJournalSecrets(people),p_released:releasedPeople});
       if(r.error)throw r.error;
       markKnownCloudCopy();
       if(r.data&&r.data.linked){
@@ -1607,7 +1607,7 @@ async function signOut9012(){
   try{
     if(people.length||releasedPeople.length){
       if(cloudMode==='household'){
-        const result=await supabaseClient.rpc('app9012_save',{p_people:people,p_released:releasedPeople});
+        const result=await supabaseClient.rpc('app9012_save',{p_people:stripJournalSecrets(people),p_released:releasedPeople});
         if(result.error)throw result.error;
         if(!result.data||!result.data.linked)throw Error('Cloud account save was not confirmed.');
       }else if(cloudMode==='legacy'){
@@ -1671,7 +1671,7 @@ let CAIRN=THEME_ASSETS.lantern_heritage.stones;
 let LANTERN=THEME_ASSETS.lantern_heritage.lantern;
 let FAMILY_FLAME=THEME_ASSETS.lantern_heritage.familyFlame;
 function P(){return people[cur];}
-async function savePeople(){const selected=people[cur]&&people[cur].id;people=normalizePeople(people);if(selected){const next=people.findIndex(function(p){return p.id===selected;});if(next>=0)cur=next;}await Store.set('people',people);queueCloudSave();}
+async function savePeople(){const selected=people[cur]&&people[cur].id;people=normalizePeople(people);try{await migrateJournalLocks();}catch(e){}if(selected){const next=people.findIndex(function(p){return p.id===selected;});if(next>=0)cur=next;}await Store.set('people',people);queueCloudSave();}
 async function saveRP(){await Store.set('releasedPeople',releasedPeople);queueCloudSave();}
 const HOLD=30*864e5;
 
@@ -3118,6 +3118,43 @@ async function deriveBackupKey(password,salt,iterations,usages){
  const material=await crypto.subtle.importKey('raw',backupEncoder.encode(password),'PBKDF2',false,['deriveKey']);
  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:salt,iterations:iterations},material,{name:'AES-GCM',length:256},false,usages);
 }
+const JOURNAL_LOCK_ITERATIONS=310000;
+function hasJournalLock(p){return !!(p&&(p.jlock||p.jpass));}
+async function deriveJournalHash(passcode,salt,iterations){
+ const material=await crypto.subtle.importKey('raw',backupEncoder.encode(String(passcode)),'PBKDF2',false,['deriveBits']);
+ const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:salt,iterations:iterations},material,256);
+ return bytesToBase64(new Uint8Array(bits));
+}
+async function makeJournalLock(passcode){
+ const salt=crypto.getRandomValues(new Uint8Array(16));
+ const hash=await deriveJournalHash(passcode,salt,JOURNAL_LOCK_ITERATIONS);
+ return {v:1,kdf:'PBKDF2-SHA256',iterations:JOURNAL_LOCK_ITERATIONS,salt:bytesToBase64(salt),hash:hash};
+}
+async function verifyJournalLock(passcode,lock){
+ if(!lock||!lock.salt||!lock.hash)return false;
+ try{
+  const hash=await deriveJournalHash(passcode,base64ToBytes(lock.salt),lock.iterations||JOURNAL_LOCK_ITERATIONS);
+  if(hash.length!==lock.hash.length)return false;
+  let diff=0;for(let i=0;i<hash.length;i++)diff|=hash.charCodeAt(i)^lock.hash.charCodeAt(i);
+  return diff===0;
+ }catch(e){return false;}
+}
+function stripJournalSecrets(list){
+ return (Array.isArray(list)?list:[]).map(function(p){
+  if(!p||typeof p!=='object'||!('jpass' in p))return p;
+  var copy=Object.assign({},p);delete copy.jpass;return copy;
+ });
+}
+async function migrateJournalLocks(){
+ if(!backupCryptoReady())return false;
+ var changed=false;
+ for(var i=0;i<people.length;i++){
+  var p=people[i];
+  if(!p||!p.jpass)continue;
+  try{if(!p.jlock)p.jlock=await makeJournalLock(p.jpass);delete p.jpass;changed=true;}catch(e){}
+ }
+ return changed;
+}
 function backupData(){
  if(!backupCryptoReady()){say('Encrypted backup needs a modern secure browser. Open the hosted 90:12 site in Safari and try again.');return;}
  const reminderAddress=backupReminderAddress(),reminderRow=el('backupEmailReminderRow'),reminderBox=el('backupEmailReminder');
@@ -3273,13 +3310,13 @@ async function syncRestoredShelfToCloud(){
  try{
    if(cloudMode==='household'){
      if(!activePersonId){
-       const b=await supabaseClient.rpc('app9012_bootstrap',{p_people:people,p_released:releasedPeople});
+       const b=await supabaseClient.rpc('app9012_bootstrap',{p_people:stripJournalSecrets(people),p_released:releasedPeople});
        if(b.error)throw b.error;
        if(!applyCloudContext(b.data))throw new Error('The restored shelf could not be linked to this account.');
        await writeLocalCache();
        return true;
      }
-     const r=await supabaseClient.rpc('app9012_save',{p_people:people,p_released:releasedPeople});
+     const r=await supabaseClient.rpc('app9012_save',{p_people:stripJournalSecrets(people),p_released:releasedPeople});
      if(r.error)throw r.error;
      return true;
    }
@@ -3438,23 +3475,23 @@ function goDoorJournal(){closeModal('doorsModal');enterJournal();}
 const JOURNAL_LOCK_IDLE_MS=5*60*1000;
 let journalPassAfterUnlock='',journalUnlockedUntil=0,journalLockTimer=null;
 function journalIsUnlocked(){return journalUnlockedUntil>Date.now();}
-function relockJournal(leaveView){journalUnlockedUntil=0;clearTimeout(journalLockTimer);journalLockTimer=null;if(leaveView&&el('viewJournal')&&el('viewJournal').classList.contains('active')&&P()&&P().jpass){show('viewSecret');showToast('<span>Your journal screen lock has relocked.</span>');}}
-function armJournalRelock(){if(!(P()&&P().jpass))return;journalUnlockedUntil=Date.now()+JOURNAL_LOCK_IDLE_MS;clearTimeout(journalLockTimer);journalLockTimer=setTimeout(function(){relockJournal(true);},JOURNAL_LOCK_IDLE_MS);}
+function relockJournal(leaveView){journalUnlockedUntil=0;clearTimeout(journalLockTimer);journalLockTimer=null;if(leaveView&&el('viewJournal')&&el('viewJournal').classList.contains('active')&&hasJournalLock(P())){show('viewSecret');showToast('<span>Your journal screen lock has relocked.</span>');}}
+function armJournalRelock(){if(!hasJournalLock(P()))return;journalUnlockedUntil=Date.now()+JOURNAL_LOCK_IDLE_MS;clearTimeout(journalLockTimer);journalLockTimer=setTimeout(function(){relockJournal(true);},JOURNAL_LOCK_IDLE_MS);}
 function noteJournalActivity(){if(journalIsUnlocked()&&el('viewJournal')&&el('viewJournal').classList.contains('active'))armJournalRelock();}
 document.addEventListener('pointerdown',noteJournalActivity,{passive:true});document.addEventListener('keydown',noteJournalActivity);document.addEventListener('visibilitychange',function(){if(document.hidden)relockJournal(true);});window.addEventListener('pagehide',function(){relockJournal(false);});
 function showScreenLockInfo(){openModal('screenLockInfoModal');}
-function openJournal(){renderJournal();if(el('jTitle'))el('jTitle').textContent=(P()?P().name+'\u2019s Journal':'My Journal');if(P()&&P().jpass)armJournalRelock();markTabs('');show('viewJournal');scrollToTarget();maybeCoach('journal');}
-function updateJournalPassControls(){var p=P(),locked=!!(p&&p.jpass);var main=el('journalPassBtn');if(main)main.textContent=locked?'Change or remove screen lock':'Add journal screen lock';var secret=el('secretJournalPassBtn');if(secret)secret.innerHTML=locked?'&#128274; Change or remove journal screen lock':'&#128275; Add journal screen lock';var read=el('readJournalBtn');if(read)read.innerHTML=locked?'&#128274; Unlock and read my journal &rarr;':'Read my journal &rarr;';}
-function manageJournalPassFromSecret(){var p=P();if(!p)return;if(!p.jpass){askSetCode();openModal('journalGate');return;}journalPassAfterUnlock='manage';promptJournalPass();}
-function enterJournal(){var p=P();if(!p)return;if(!p.jpassAsked){askJournalPass();return;}if(p.jpass&&!journalIsUnlocked()){journalPassAfterUnlock='';promptJournalPass();return;}openJournal();}
+function openJournal(){renderJournal();if(el('jTitle'))el('jTitle').textContent=(P()?P().name+'\u2019s Journal':'My Journal');if(hasJournalLock(P()))armJournalRelock();markTabs('');show('viewJournal');scrollToTarget();maybeCoach('journal');}
+function updateJournalPassControls(){var p=P(),locked=hasJournalLock(p);var main=el('journalPassBtn');if(main)main.textContent=locked?'Change or remove screen lock':'Add journal screen lock';var secret=el('secretJournalPassBtn');if(secret)secret.innerHTML=locked?'&#128274; Change or remove journal screen lock':'&#128275; Add journal screen lock';var read=el('readJournalBtn');if(read)read.innerHTML=locked?'&#128274; Unlock and read my journal &rarr;':'Read my journal &rarr;';}
+function manageJournalPassFromSecret(){var p=P();if(!p)return;if(!hasJournalLock(p)){askSetCode();openModal('journalGate');return;}journalPassAfterUnlock='manage';promptJournalPass();}
+function enterJournal(){var p=P();if(!p)return;if(!p.jpassAsked){askJournalPass();return;}if(hasJournalLock(p)&&!journalIsUnlocked()){journalPassAfterUnlock='';promptJournalPass();return;}openJournal();}
 function askJournalPass(){el('journalGateBox').innerHTML='<h3>Add a journal screen lock?</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">A passcode can help prevent casual viewing on this device.</p><p class="privacyexplain">This is a screen lock, not encryption. Someone with access to this browser\u2019s stored website data may still be able to read the entries.</p><div class="mrow"><button class="ghost" onclick="setNoJournalPass()">No, open freely</button><button onclick="askSetCode()">Add screen lock</button></div>';openModal('journalGate');}
 function askSetCode(){el('journalGateBox').innerHTML='<h3>Set a journal screen lock</h3><input type="password" id="jpInput" inputmode="numeric" autocomplete="new-password" placeholder="Choose a passcode"/><p class="privacyexplain">This prevents casual viewing; it does not encrypt your journal.</p><div class="mrow"><button class="ghost" onclick="closeModal(\'journalGate\')">Cancel</button><button onclick="saveJournalPass()">Save &amp; open</button></div>';setTimeout(function(){var i=el('jpInput');if(i)i.focus();},60);}
-function saveJournalPass(){var v=(el('jpInput').value||'').trim();if(!v){say('Enter a passcode, or choose to open freely.');return;}var p=P();p.jpass=v;p.jpassAsked=true;savePeople();armJournalRelock();updateJournalPassControls();closeModal('journalGate');openJournal();}
-function setNoJournalPass(){var p=P();p.jpass='';p.jpassAsked=true;relockJournal(false);savePeople();updateJournalPassControls();closeModal('journalGate');openJournal();}
-function manageJournalPass(){var p=P();if(!p)return;if(!p.jpass){askSetCode();openModal('journalGate');return;}el('journalGateBox').innerHTML='<h3>Journal screen lock</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">Change the passcode or remove the screen lock. Your journal entries will stay in place.</p><p class="privacyexplain">This prevents casual viewing; it does not encrypt your journal.</p><div class="mrow"><button class="ghost" onclick="closeModal(\'journalGate\')">Cancel</button><button class="ghost" onclick="removeJournalPass()">Remove screen lock</button><button onclick="askSetCode()">Change passcode</button></div>';openModal('journalGate');}
-function removeJournalPass(){var p=P();if(!p)return;p.jpass='';p.jpassAsked=true;relockJournal(false);savePeople();updateJournalPassControls();closeModal('journalGate');showToast('<span>Journal screen lock removed.</span>');}
+async function saveJournalPass(){var v=(el('jpInput').value||'').trim();if(!v){say('Enter a passcode, or choose to open freely.');return;}if(!backupCryptoReady()){say('A journal screen lock needs a modern secure browser. Open the hosted 90:12 site and try again.');return;}var p=P();try{p.jlock=await makeJournalLock(v);}catch(e){say('That passcode could not be saved on this device.');return;}delete p.jpass;p.jpassAsked=true;savePeople();armJournalRelock();updateJournalPassControls();closeModal('journalGate');openJournal();}
+function setNoJournalPass(){var p=P();delete p.jpass;delete p.jlock;p.jpassAsked=true;relockJournal(false);savePeople();updateJournalPassControls();closeModal('journalGate');openJournal();}
+function manageJournalPass(){var p=P();if(!p)return;if(!hasJournalLock(p)){askSetCode();openModal('journalGate');return;}el('journalGateBox').innerHTML='<h3>Journal screen lock</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">Change the passcode or remove the screen lock. Your journal entries will stay in place.</p><p class="privacyexplain">This prevents casual viewing; it does not encrypt your journal.</p><div class="mrow"><button class="ghost" onclick="closeModal(\'journalGate\')">Cancel</button><button class="ghost" onclick="removeJournalPass()">Remove screen lock</button><button onclick="askSetCode()">Change passcode</button></div>';openModal('journalGate');}
+function removeJournalPass(){var p=P();if(!p)return;delete p.jpass;delete p.jlock;p.jpassAsked=true;relockJournal(false);savePeople();updateJournalPassControls();closeModal('journalGate');showToast('<span>Journal screen lock removed.</span>');}
 function promptJournalPass(){el('journalGateBox').innerHTML='<h3>Your journal screen lock</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 12px">Enter your passcode to open the journal on this device.</p><input type="password" id="jpInput" inputmode="numeric" autocomplete="current-password" placeholder="Passcode"/><div class="mrow"><button class="ghost" onclick="closeModal(\'journalGate\')">Cancel</button><button onclick="checkJournalPass()">Unlock</button></div>';openModal('journalGate');setTimeout(function(){var i=el('jpInput');if(i)i.focus();},60);}
-function checkJournalPass(){var v=(el('jpInput').value||'').trim();var p=P();if(v&&v===p.jpass){var action=journalPassAfterUnlock;journalPassAfterUnlock='';armJournalRelock();closeModal('journalGate');openJournal();if(action==='manage')setTimeout(manageJournalPass,80);}else{say('That passcode doesn\u2019t match.');}}
+async function checkJournalPass(){var v=(el('jpInput').value||'').trim();var p=P();if(!p)return;var ok=false;if(p.jlock){ok=await verifyJournalLock(v,p.jlock);}else if(p.jpass){ok=!!v&&v===p.jpass;if(ok){try{p.jlock=await makeJournalLock(v);}catch(e){}delete p.jpass;savePeople();}}if(ok){var action=journalPassAfterUnlock;journalPassAfterUnlock='';armJournalRelock();closeModal('journalGate');openJournal();if(action==='manage')setTimeout(manageJournalPass,80);}else{say('That passcode doesn\u2019t match.');}}
 
 var _expand=null;
 function openExpand(kind,id){var p=P();var item=(kind==='prayer'?(p.prayers||[]):(p.journal||[])).find(function(x){return x.id===id;});if(!item)return;_expand={kind:kind,id:id};el('expandBody').value=item.body||'';el('expandHead').textContent=(kind==='prayer'?'Add to this prayer':'Add to this entry');openModal('expandModal');setTimeout(function(){var t=el('expandBody');if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},60);}
@@ -3794,7 +3831,7 @@ window.app9012KeepsakeBridge={
   if(!this.isOwnShelf()||!this.source(kind,id)||cloudMode!=='household'||cloudHydrating||cloudLoadPromise||cloudSaving)throw Error('Wait for the connected shelf to finish saving.');
   var c=this.context(),snapshot=JSON.parse(JSON.stringify(people)),released=JSON.parse(JSON.stringify(releasedPeople));
   clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSaving=true;
-  try{await Store.set('people',snapshot);var r=await c.client.rpc('app9012_save',{p_people:snapshot,p_released:released});
+  try{await Store.set('people',snapshot);var r=await c.client.rpc('app9012_save',{p_people:stripJournalSecrets(snapshot),p_released:released});
    if(r.error)throw r.error;
    if(!r.data||!r.data.linked||r.data.person_id!==c.personId||r.data.household_id!==c.householdId||!currentSession||currentSession.user.id!==c.userId)throw Error('Source save unconfirmed');
   }finally{cloudSaving=false;if(cloudSavePending){cloudSavePending=false;queueCloudSave();}}
