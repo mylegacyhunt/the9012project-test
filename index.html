@@ -337,6 +337,9 @@ footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spa
 .secretdoor img{width:100%;display:block;filter:drop-shadow(0 22px 44px rgba(0,0,0,.65));}
 .secretdoor:focus-visible{outline:3px solid #c9a84c;outline-offset:6px;border-radius:16px;}
 .doorcaption{font-family:'Cormorant Garamond',serif;letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:#C9A84C;margin-top:10px;}
+.doorlockrow{text-align:center;margin:10px auto 0;}
+.doorlockrow button{opacity:.82;}
+.doorlockrow button:hover{opacity:1;}
 .secretwrap{max-width:600px;margin:0 auto;}
 .secretback{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
 .secretverse{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;color:#d8c48a;font-size:16px;line-height:1.6;margin:6px auto 18px;max-width:520px;}
@@ -992,6 +995,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
   <div class="addbar"><button class="ghost" id="famBtn" onclick="showFamily()" style="display:none">&larr; My Family</button><button class="ghost" onclick="editPerson()">Edit this person</button><button id="guidedAddFamilyBtn" onclick="openAdd()">+ Add a family member</button></div>
   <div class="themeshelfcontrol"><button class="ghost mini" onclick="openThemeChoiceFromShelf()">Theme / Appearance</button></div>
   <div class="secretdoor" role="button" tabindex="0" aria-label="Enter the Secret Place" onclick="enterSecret()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSecret();}"><img src="assets/images/themes/lantern-heritage/secret-place/secret-door-app.png" alt="A warmly lit doorway into the Secret Place" loading="lazy" decoding="async"/><div class="doorcaption">The Secret Place</div></div>
+  <div class="doorlockrow"><button type="button" class="ghost mini" id="shelfSecretLockBtn" onclick="manageJournalPassFromSecret()">Add a screen lock</button></div>
   <div class="readletter"><button class="ghost" onclick="openLetter()">Read Elias&rsquo;s Letter</button></div>
   <section class="projectinvite" aria-labelledby="shelfProjectInviteTitle">
     <div class="inviteeyebrow">Share 90:12</div>
@@ -2053,7 +2057,7 @@ function loop(){if(total>0){f+=(fTarget-f)*0.08;setLevel(f);paintNums();}request
 requestAnimationFrame(loop);
 function displayedWeeks(){if(!birth||!total)return 0;const now=Date.now()+dayOffset*864e5;return Math.max(0,Math.floor((now-birth.getTime())/(7*864e5)));}
 function paintNums(){const dw=displayedWeeks(),weekNumber=(dw+1).toLocaleString();const before=Math.max(0,total-dw);const behind=(dw>total?dw:Math.round(f*total));el('numBehind').textContent=behind.toLocaleString();el('numBefore').textContent=before.toLocaleString();const p=P(),title=el('title');if(p&&title)title.textContent=p.name+"\u2019s Jar of Weeks \u00b7 Week "+weekNumber;const now=new Date(Date.now()+dayOffset*864e5);el('readout').textContent='Week '+weekNumber+' \u00b7 '+now.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});}
-function refresh(){const graceWeeks=total+1600;const minD=-(lived*7),maxD=(graceWeeks-lived)*7;dayOffset=Math.max(minD,Math.min(maxD,dayOffset));fTarget=Math.min(1,Math.max(0,displayedWeeks()/total));}
+function refresh(){updateJournalPassControls();const graceWeeks=total+1600;const minD=-(lived*7),maxD=(graceWeeks-lived)*7;dayOffset=Math.max(minD,Math.min(maxD,dayOffset));fTarget=Math.min(1,Math.max(0,displayedWeeks()/total));}
 function flameOn(){globeOn.classList.remove('off');}function flameOff(){globeOn.classList.add('off');}
 function podOn(){podLit.classList.remove('off');}function podEmpty(){podLit.classList.add('off');}
 function setArc(e,x,y,s,o,ms){e.style.transition='all '+ms+'ms cubic-bezier(.45,.05,.4,1)';e.style.left=x+'%';e.style.top=y+'%';e.style.transform='translate(-50%,-50%) scale('+s+')';e.style.opacity=o;}
@@ -3497,7 +3501,7 @@ function noteJournalActivity(){if(journalIsUnlocked()&&el('viewJournal')&&el('vi
 document.addEventListener('pointerdown',noteJournalActivity,{passive:true});document.addEventListener('keydown',noteJournalActivity);document.addEventListener('visibilitychange',function(){if(document.hidden)relockJournal(true);});window.addEventListener('pagehide',function(){relockJournal(false);});
 function showScreenLockInfo(){openModal('screenLockInfoModal');}
 function openJournal(){if(!requireSecretUnlock('journal'))return;renderJournal();if(el('jTitle'))el('jTitle').textContent=(P()?P().name+'\u2019s Journal':'My Journal');if(hasJournalLock(P()))armJournalRelock();markTabs('');show('viewJournal');scrollToTarget();maybeCoach('journal');}
-function updateJournalPassControls(){var p=P(),locked=hasJournalLock(p);var main=el('journalPassBtn');if(main)main.textContent=locked?'Change or remove screen lock':'Add Secret Place screen lock';var secret=el('secretJournalPassBtn');if(secret)secret.innerHTML=locked?'&#128274; Change or remove Secret Place screen lock':'&#128275; Add Secret Place screen lock';var read=el('readJournalBtn');if(read)read.innerHTML=locked?'&#128274; Unlock and read my journal &rarr;':'Read my journal &rarr;';}
+function updateJournalPassControls(){var p=P(),locked=hasJournalLock(p);var shelf=el('shelfSecretLockBtn');if(shelf)shelf.textContent=locked?'Change or remove screen lock':'Add a screen lock';var main=el('journalPassBtn');if(main)main.textContent=locked?'Change or remove screen lock':'Add Secret Place screen lock';var secret=el('secretJournalPassBtn');if(secret)secret.innerHTML=locked?'&#128274; Change or remove Secret Place screen lock':'&#128275; Add Secret Place screen lock';var read=el('readJournalBtn');if(read)read.innerHTML=locked?'&#128274; Unlock and read my journal &rarr;':'Read my journal &rarr;';}
 function manageJournalPassFromSecret(){var p=P();if(!p)return;if(!hasJournalLock(p)){askSetCode();openModal('journalGate');return;}journalPassAfterUnlock='manage';promptJournalPass();}
 function enterJournal(){var p=P();if(!p)return;openJournal();}
 function askJournalPass(){el('journalGateBox').innerHTML='<h3>Add a screen lock to the Secret Place?</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">One passcode guards your prayers and your journal on this device.</p><p class="privacyexplain">This is a screen lock, not encryption. Someone with access to this browser\u2019s stored website data may still be able to read what is inside.</p><div class="mrow"><button class="ghost" onclick="setNoJournalPass()">No, open freely</button><button onclick="askSetCode()">Add screen lock</button></div>';openModal('journalGate');}
