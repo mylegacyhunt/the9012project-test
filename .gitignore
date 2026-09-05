@@ -1,0 +1,13 @@
+.DS_Store
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+
+# Supabase CLI connection state and private schema/database backups
+supabase/.temp/
+supabase/schema-snapshots/
+supabase/backups/
+*.dump
+*.backup
