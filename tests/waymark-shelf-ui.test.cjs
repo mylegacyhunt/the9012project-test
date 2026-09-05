@@ -42,17 +42,16 @@ test('compact microphone still appends speech, stops before save, and unlocks th
  assert.match(lastState.message,/ready to review/);
 });
 
-test('personal and family shelves steady the right plaque while fill images blend',()=>{
- assert.match(html,/class="shelf-plaque-before" src="assets\/images\/themes\/lantern-heritage\/lantern\/lantern-scene-04-app\.jpg"/);
+test('personal Shelf uses the complete corrected master without a clipped jar patch',()=>{
+ assert.match(html,/class="frame" src="assets\/images\/themes\/lantern-heritage\/lantern\/lantern-scene-04-half-corrected-app\.jpg"/);
+ assert.doesNotMatch(html,/class="shelf-plaque-before" src="assets\/images\/themes\/lantern-heritage\/lantern\/lantern-scene-04-app\.jpg"/);
  assert.match(html,/class="shelf-plaque-before" src="\$\{STRIPS\[4\]\}"/);
- assert.match(html,/\.shelf-plaque-before\{[^}]*object-fit:contain/);
  assert.match(html,/\.famstrip \.shelf-plaque-before\{[^}]*object-fit:cover/);
- assert.match(html,/html\[data-theme="heirloom_light"\] \.shelf-plaque-before\{clip-path:/);
  assert.match(html,/html\[data-theme="heirloom_light"\] \.famstrip \.shelf-plaque-before\{object-fit:contain/);
 });
 
-test('desktop shelf enlarges without changing either theme scene ratio',()=>{
- assert.match(html,/@media\(min-width:1040px\)\{\.scene\{width:calc\(100% \+ 144px\);margin-left:-72px/);
+test('personal Shelf stays centered and keeps each original scene ratio',()=>{
+ assert.doesNotMatch(html,/width:calc\(100% \+ 144px\)|margin-left:-72px/);
  assert.match(html,/\.scene\{position:relative;width:100%;aspect-ratio:1536\/1024/);
  assert.match(html,/html\[data-theme="heirloom_light"\] \.scene\{aspect-ratio:4\/3/);
 });

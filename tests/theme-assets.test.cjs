@@ -7,6 +7,16 @@ const definitions=section('const THEME_ASSETS=','function P(){');
 const themes=section('/* Themes */','/* Family Photo Album */');
 const assets=vm.runInNewContext(definitions+';THEME_ASSETS');
 const nameHelpers=section('function cleanNamePart(v)','function householdHeadPerson()');
+function jpegSize(file){
+ const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt16BE(0),0xffd8,file+' must be a JPEG');
+ for(let offset=2;offset+9<bytes.length;){
+  if(bytes[offset]!==0xff){offset++;continue;}
+  const marker=bytes[offset+1],length=bytes.readUInt16BE(offset+2);
+  if([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf].includes(marker))return {width:bytes.readUInt16BE(offset+7),height:bytes.readUInt16BE(offset+5)};
+  if(!length)break;offset+=2+length;
+ }
+ throw Error('Could not read JPEG dimensions: '+file);
+}
 function fixture(options={}){
  const storage=new Map(Object.entries(options.storage||{})),events={},images=[];
  function element(src=''){
@@ -140,6 +150,9 @@ test('a synthetic 39-year-old profile renders near-half family jars with an 81-y
 test('Heritage uses the corrected nearly half-and-half artwork for its midpoint stage',()=>{
  assert.equal(assets.lantern_heritage.scenes[4],'assets/images/themes/lantern-heritage/lantern/lantern-scene-04-half-corrected-app.jpg');
  assert(fs.existsSync(path.join(root,assets.lantern_heritage.scenes[4])));
+});
+test('Heritage Shelf scenes retain their full master resolution',()=>{
+ for(const file of assets.lantern_heritage.scenes)assert.deepEqual(jpegSize(path.join(root,file)),{width:1536,height:1024},file);
 });
 test('family cards use given names without changing full names or personal records',()=>{
  const people=[
