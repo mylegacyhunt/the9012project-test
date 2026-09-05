@@ -316,7 +316,11 @@ h1{font-family:'Cormorant Garamond',serif;font-weight:500;text-align:center;font
 .gwtoast img{width:24px;height:auto;filter:drop-shadow(0 0 6px rgba(255,185,70,.8));}
 .chkline{display:flex;align-items:center;gap:8px;color:#c9b78f;font-size:14px;margin-top:4px;}
 .chkline input{width:auto;min-width:0;margin:0;}
-footer{text-align:center;margin-top:14px;color:#6f6450;font-size:11px;letter-spacing:.05em;}
+footer{text-align:center;margin-top:14px;color:#9f927a;font-size:12px;line-height:1.5;letter-spacing:.04em;}
+.savestatus{font-weight:600;}
+.savestatus[data-state="saving"]{color:#d8bd7b;}
+.savestatus[data-state="failed"]{color:#efa58f;}
+.savehint{color:#81745f;}
 .parchsheet{border:30px solid transparent;border-image:url('assets/images/themes/lantern-heritage/backgrounds/parchment-border-app.png') 66 fill;border-image-repeat:round;background:transparent;padding:2px 10px 10px;}
 .wyear{cursor:pointer;font-family:'Cormorant Garamond',serif;color:#5a3d10;letter-spacing:.08em;font-size:16px;padding:12px 4px 8px;border-bottom:1px solid rgba(90,60,20,.28);display:flex;justify-content:space-between;align-items:center;}
 .wyear .caret{transition:transform .2s;} .yeargroup.collapsed .wyear .caret{transform:rotate(-90deg);} .yeargroup.collapsed .ybody{display:none;}
@@ -579,6 +583,7 @@ html[data-theme="heirloom_light"] #familyMediaRoot h2,html[data-theme="heirloom_
 html[data-theme="heirloom_light"] .modal{background:rgba(70,55,40,.34);}html[data-theme="heirloom_light"] .doorsbtn{background:rgba(255,252,244,.94);color:#554432;border-color:#9a815f;}html[data-theme="heirloom_light"] .door{background:linear-gradient(180deg,#fffdf7,#eee3d1);color:#493a2d;border-color:rgba(128,103,70,.34);}html[data-theme="heirloom_light"] .doortagline{color:#786852;}
 html[data-theme="heirloom_light"] .photocard,html[data-theme="heirloom_light"] .photoimgwrap{background:#f0e5d5;}html[data-theme="heirloom_light"] .photocaption,html[data-theme="heirloom_light"] .photocomment,html[data-theme="heirloom_light"] .fsmessagetext{color:#574636;}html[data-theme="heirloom_light"] .sourcebadge{background:rgba(128,145,107,.12);color:#546044;border-color:rgba(105,125,86,.35);}
 html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgba(128,103,70,.3);}html[data-theme="heirloom_light"] .themecard h3,html[data-theme="heirloom_light"] .themecard.heirloom h3{color:#4e3d2d;}html[data-theme="heirloom_light"] .themecard p{color:#766652;}html[data-theme="heirloom_light"] .themecard.selected{box-shadow:0 0 0 2px rgba(126,145,104,.75) inset,0 12px 28px rgba(69,51,33,.12);}html[data-theme="heirloom_light"] .themebadge{color:#556146;background:rgba(126,145,104,.14);border-color:rgba(126,145,104,.4);}
+html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloom_light"] .savestatus[data-state="saving"]{color:#775d29;}html[data-theme="heirloom_light"] .savestatus[data-state="failed"]{color:#8d3628;}html[data-theme="heirloom_light"] .savehint{color:#766957;}
 @media(max-width:700px){html[data-theme="heirloom_light"] .rules-scroll{padding:30px 24px;}html[data-theme="heirloom_light"] .parchsheet,html[data-theme="heirloom_light"] .familypaper{padding:16px 12px;}}
 
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
@@ -1141,7 +1146,7 @@ html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgb
 <div class="giftpop" id="giftPop"></div>
 <div class="gwtoast" id="gwToast"></div>
 <div class="erasebar" id="eraseBar" style="display:none"><button class="eraselink" onclick="askEraseAll()">Erase my 90:12 data&hellip;</button></div>
-<footer>Saved on this device &middot; back up your keepsake to keep it safe</footer>
+<footer><span id="saveStatus" class="savestatus" data-state="saved" role="status" aria-live="polite" aria-atomic="true">Saved changes are on this device</span><span class="savehint"> &middot; back up your keepsake to keep it safe</span></footer>
 <div class="sitefoot"><button class="footlink salvationlink" onclick="openSalvation()">The Plan of Salvation</button><span id="howLink" style="display:none"><span class="footdot">&middot;</span><button class="footlink" onclick="openHelp()">How this works</button></span><span class="footdot">&middot;</span><button class="footlink" onclick="suggestSoon()">Share a suggestion</button></div>
 </div>
 
@@ -3861,4 +3866,97 @@ window.app9012KeepsakeBridge={
 </script>
 <script src="assets/keepsakes.js"></script>
 <!-- END KEEPSAKE FEATURES -->
+<script>
+/* SAVE RELIABILITY CONTROLS
+   This layer deliberately lives outside the pinned authentication and private-data
+   section above. It reports real save failures, immediately preserves the latest
+   in-memory shelf when the page is hidden, and gives a queued account save one last
+   best-effort start without changing the Supabase schema or privacy rules. */
+(function installSaveReliability(){
+ 'use strict';
+ let localSaveState='saved';
+ let cloudSaveState='idle';
+ let localWritesInFlight=0;
+ let localBatchFailed=false;
+
+ function accountSaveAvailable(){return !!(currentSession&&supabaseClient&&(cloudMode==='household'||cloudMode==='legacy'));}
+ function renderSaveStatus(){
+   const node=el('saveStatus');if(!node)return;
+   let text='Saved changes are on this device',state='saved';
+   if(localSaveState==='failed'&&cloudSaveState==='saved')text='Saved to your account · not saved on this device';
+   else if(localSaveState==='failed'){text='Latest changes were not saved on this device — keep this page open';state='failed';}
+   else if(localSaveState==='saving'){text='Saving your latest changes…';state='saving';}
+   else if(cloudSaveState==='queued'||cloudSaveState==='saving'){text='Saved on this device · saving to your account…';state='saving';}
+   else if(cloudSaveState==='failed'){text='Saved on this device · not saved to your account';state='failed';}
+   else if(cloudSaveState==='saved')text='Saved on this device and to your account';
+   node.textContent=text;node.dataset.state=state;
+ }
+
+ const originalStoreSet=Store.set.bind(Store);
+ Store.set=async function(k,v){
+   if(localWritesInFlight===0)localBatchFailed=false;
+   localWritesInFlight++;localSaveState='saving';renderSaveStatus();
+   let ok=false;
+   try{ok=(await originalStoreSet(k,v))===true;}catch(error){console.error('90:12 device save failed:',error);}
+   if(!ok)localBatchFailed=true;
+   localWritesInFlight--;
+   if(localWritesInFlight===0)localSaveState=localBatchFailed?'failed':'saved';
+   renderSaveStatus();
+   return ok;
+ };
+
+ const originalQueueCloudSave=queueCloudSave;
+ queueCloudSave=function(){
+   if(!cloudHydrating&&accountSaveAvailable()){cloudSaveState='queued';renderSaveStatus();}
+   return originalQueueCloudSave();
+ };
+
+ if(supabaseClient&&typeof supabaseClient.rpc==='function'){
+   const originalRpc=supabaseClient.rpc.bind(supabaseClient);
+   supabaseClient.rpc=async function(name,args,options){
+     const isShelfSave=name==='app9012_save';
+     if(isShelfSave){cloudSaveState='saving';renderSaveStatus();}
+     try{
+       const result=await originalRpc(name,args,options);
+       if(isShelfSave){cloudSaveState=(!result.error&&result.data&&result.data.linked)?'saved':'failed';renderSaveStatus();}
+       return result;
+     }catch(error){
+       if(isShelfSave){cloudSaveState='failed';renderSaveStatus();}
+       throw error;
+     }
+   };
+ }
+
+ const originalLegacyCloudSave=legacyCloudSave;
+ legacyCloudSave=async function(){
+   cloudSaveState='saving';renderSaveStatus();
+   try{const result=await originalLegacyCloudSave();cloudSaveState='saved';renderSaveStatus();return result;}
+   catch(error){cloudSaveState='failed';renderSaveStatus();throw error;}
+ };
+
+ function saveLatestStateToDeviceNow(){
+   if(!bootReady||cloudHydrating||cloudLoadPromise)return true;
+   const peopleOk=lsSet('people',people);
+   const releasedOk=lsSet('releasedPeople',releasedPeople);
+   localSaveState=(peopleOk&&releasedOk)?'saved':'failed';renderSaveStatus();
+   return peopleOk&&releasedOk;
+ }
+ function flushPendingSaves(){
+   saveLatestStateToDeviceNow();
+   if(cloudSaveTimer&&accountSaveAvailable()){
+     clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSaveState='queued';renderSaveStatus();
+     cloudSaveNow();
+   }
+ }
+ document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushPendingSaves();});
+ window.addEventListener('pagehide',flushPendingSaves);
+ window.addEventListener('beforeunload',function(event){
+   if(localSaveState!=='failed')return;
+   event.preventDefault();event.returnValue='';
+ });
+ window.app9012SaveReliability={flush:flushPendingSaves,status:function(){return {device:localSaveState,account:cloudSaveState};}};
+ renderSaveStatus();
+})();
+/* END SAVE RELIABILITY CONTROLS */
+</script>
 </body></html>
