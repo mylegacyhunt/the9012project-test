@@ -1246,6 +1246,42 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
   });
 }
 
+/* SHELF REVISION GUARD
+   Installed before boot can load cloud data. Every guarded save receives the
+   revisions returned by the latest context for this exact signed-in account. */
+let cloudRevisionOwnerId=null;
+let cloudHouseholdRevision=null;
+let cloudShelfRevisions=Object.create(null);
+function captureCloudRevisions(data){
+  if(!data||!data.linked||!currentSession||!currentSession.user)return false;
+  const household=Number(data.household_revision),shelves=data.shelf_revisions;
+  if(!Number.isSafeInteger(household)||household<1||!shelves||typeof shelves!=='object'||Array.isArray(shelves))return false;
+  const clean=Object.create(null);
+  for(const id of Object.keys(shelves)){
+    const value=Number(shelves[id]);
+    if(Number.isSafeInteger(value)&&value>0)clean[id]=value;
+  }
+  cloudRevisionOwnerId=currentSession.user.id;cloudHouseholdRevision=household;cloudShelfRevisions=clean;return true;
+}
+function guardedShelfSaveArgs(args){
+  const owner=currentSession&&currentSession.user&&currentSession.user.id;
+  const ready=!!(owner&&cloudRevisionOwnerId===owner&&Number.isSafeInteger(cloudHouseholdRevision)&&cloudHouseholdRevision>0);
+  return Object.assign({},args||{},{
+    p_expected_household_revision:ready?cloudHouseholdRevision:null,
+    p_shelf_revisions:ready?cloudShelfRevisions:null
+  });
+}
+if(supabaseClient&&typeof supabaseClient.rpc==='function'){
+  const unguardedRpc=supabaseClient.rpc.bind(supabaseClient);
+  supabaseClient.rpc=async function(name,args,options){
+    if(name==='app9012_save')args=guardedShelfSaveArgs(args);
+    const result=await unguardedRpc(name,args,options);
+    if(result&&result.data)captureCloudRevisions(result.data);
+    return result;
+  };
+}
+/* END SHELF REVISION GUARD */
+
 const mem={};
 function lsGet(k){try{const v=localStorage.getItem('9012_'+k);return v==null?undefined:JSON.parse(v);}catch(e){return undefined;}}
 function lsSet(k,v){try{localStorage.setItem('9012_'+k,JSON.stringify(v));return true;}catch(e){return false;}}
@@ -3874,12 +3910,17 @@ window.app9012KeepsakeBridge={
  let localBatchFailed=false;
 
  function accountSaveAvailable(){return !!(currentSession&&supabaseClient&&(cloudMode==='household'||cloudMode==='legacy'));}
+ function isRevisionConflict(error){
+   const detail=((error&&error.code)||'')+' '+((error&&error.message)||'')+' '+((error&&error.details)||'');
+   return /40001|app9012_revision_conflict/i.test(detail);
+ }
  function renderSaveStatus(){
    const node=el('saveStatus');if(!node)return;
    let text='Saved changes are on this device',state='saved';
    if(localSaveState==='failed'&&cloudSaveState==='saved')text='Saved to your account · not saved on this device';
    else if(localSaveState==='failed'){text='Latest changes were not saved on this device — keep this page open';state='failed';}
    else if(localSaveState==='saving'){text='Saving your latest changes…';state='saving';}
+   else if(cloudSaveState==='conflict'){text='Newer account changes are safe · this device was not allowed to overwrite them';state='failed';}
    else if(cloudSaveState==='queued'||cloudSaveState==='saving'){text='Saved on this device · saving to your account…';state='saving';}
    else if(cloudSaveState==='failed'){text='Saved on this device · not saved to your account';state='failed';}
    else if(cloudSaveState==='saved')text='Saved on this device and to your account';
@@ -3912,10 +3953,11 @@ window.app9012KeepsakeBridge={
      if(isShelfSave){cloudSaveState='saving';renderSaveStatus();}
      try{
        const result=await originalRpc(name,args,options);
-       if(isShelfSave){cloudSaveState=(!result.error&&result.data&&result.data.linked)?'saved':'failed';renderSaveStatus();}
+       if(result&&result.data)captureCloudRevisions(result.data);
+       if(isShelfSave){cloudSaveState=result.error?(isRevisionConflict(result.error)?'conflict':'failed'):(result.data&&result.data.linked?'saved':'failed');renderSaveStatus();}
        return result;
      }catch(error){
-       if(isShelfSave){cloudSaveState='failed';renderSaveStatus();}
+       if(isShelfSave){cloudSaveState=isRevisionConflict(error)?'conflict':'failed';renderSaveStatus();}
        throw error;
      }
    };
@@ -3948,7 +3990,7 @@ window.app9012KeepsakeBridge={
    if(localSaveState!=='failed')return;
    event.preventDefault();event.returnValue='';
  });
- window.app9012SaveReliability={flush:flushPendingSaves,status:function(){return {device:localSaveState,account:cloudSaveState};}};
+ window.app9012SaveReliability={flush:flushPendingSaves,status:function(){return {device:localSaveState,account:cloudSaveState,householdRevision:cloudHouseholdRevision};}};
  renderSaveStatus();
 })();
 /* END SAVE RELIABILITY CONTROLS */

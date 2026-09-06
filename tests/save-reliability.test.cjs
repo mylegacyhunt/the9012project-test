@@ -2,18 +2,22 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const revisionStart=html.indexOf('/* SHELF REVISION GUARD');
+const revisionEnd=html.indexOf('/* END SHELF REVISION GUARD */',revisionStart);
+assert(revisionStart>=0&&revisionEnd>revisionStart);
+const revisionControls=html.slice(revisionStart,revisionEnd+'/* END SHELF REVISION GUARD */'.length);
 const start=html.indexOf('/* SAVE RELIABILITY CONTROLS');
 const end=html.indexOf('/* END SAVE RELIABILITY CONTROLS */',start);
 assert(start>=0&&end>start);
 const controls=html.slice(start,end+'/* END SAVE RELIABILITY CONTROLS */'.length);
 
 function fixture(options={}){
- const status={textContent:'',dataset:{}},documentEvents={},windowEvents={},writes=[];
+ const status={textContent:'',dataset:{}},documentEvents={},windowEvents={},writes=[],calls=[];
  let queued=0,cloudNow=0;
  const env={
   Store:{set:async()=>options.deviceOk!==false},
   currentSession:options.signedOut?null:{user:{id:'person-1'}},
-  supabaseClient:options.noClient?null:{rpc:async()=>options.rpcResult||{data:{linked:true},error:null}},
+  supabaseClient:options.noClient?null:{rpc:async(name,args)=>{calls.push({name,args});return options.rpc?options.rpc(name,args):options.rpcResult||{data:{linked:true},error:null};}},
   cloudMode:options.cloudMode||'household',cloudHydrating:false,cloudLoadPromise:null,bootReady:true,
   cloudSaveTimer:options.timer||null,people:[{id:'person-1',journal:[{body:'private'}]}],releasedPeople:[{id:'old'}],
   queueCloudSave(){queued++;},legacyCloudSave:async()=>{if(options.legacyError)throw options.legacyError;},
@@ -24,8 +28,8 @@ function fixture(options={}){
   window:{addEventListener:(name,fn)=>{windowEvents[name]=fn;}},
   console:{error(){}},
  };
- vm.createContext(env);vm.runInContext(controls,env);
- return {env,status,documentEvents,windowEvents,writes,run:code=>vm.runInContext(code,env),queued:()=>queued,cloudNow:()=>cloudNow};
+ vm.createContext(env);vm.runInContext(revisionControls,env);vm.runInContext(controls,env);
+ return {env,status,documentEvents,windowEvents,writes,calls,run:code=>vm.runInContext(code,env),queued:()=>queued,cloudNow:()=>cloudNow};
 }
 
 test('footer exposes an accessible persistent save status',()=>{
@@ -74,4 +78,35 @@ test('a failed emergency device write changes the visible status and activates t
  const f=fixture({emergencyOk:false});f.windowEvents.pagehide();
  assert.equal(f.run('window.app9012SaveReliability.status().device'),'failed');
  assert.match(f.status.textContent,/keep this page open/);
+});
+
+test('a loaded cloud revision is attached to every household shelf save',async()=>{
+ const f=fixture({rpc:async name=>name==='app9012_get_context'
+  ?{data:{linked:true,household_revision:7,shelf_revisions:{'person-1':4}},error:null}
+  :{data:{linked:true,household_revision:8,shelf_revisions:{'person-1':5}},error:null}});
+ await f.run("supabaseClient.rpc('app9012_get_context')");
+ await f.run("supabaseClient.rpc('app9012_save',{p_people:[],p_released:[]})");
+ const args=f.calls[1].args;
+ assert.equal(args.p_expected_household_revision,7);
+ assert.equal(args.p_shelf_revisions['person-1'],4);
+ assert.equal(f.run('window.app9012SaveReliability.status().householdRevision'),8);
+});
+
+test('a stale-device refusal is visibly distinguished from an ordinary outage',async()=>{
+ const f=fixture({rpcResult:{data:null,error:{code:'40001',message:'app9012_revision_conflict'}}});
+ await f.run("supabaseClient.rpc('app9012_save',{p_people:[],p_released:[]})");
+ assert.equal(f.status.dataset.state,'failed');
+ assert.match(f.status.textContent,/not allowed to overwrite/i);
+ assert.equal(f.run('window.app9012SaveReliability.status().account'),'conflict');
+});
+
+test('revisions from one signed-in account are never reused for another',async()=>{
+ const f=fixture({rpc:async name=>name==='app9012_get_context'
+  ?{data:{linked:true,household_revision:9,shelf_revisions:{'person-1':6}},error:null}
+  :{data:null,error:{message:'app9012_revision_required'}}});
+ await f.run("supabaseClient.rpc('app9012_get_context')");
+ f.env.currentSession={user:{id:'different-account'}};
+ await f.run("supabaseClient.rpc('app9012_save',{p_people:[],p_released:[]})");
+ assert.equal(f.calls[1].args.p_expected_household_revision,null);
+ assert.equal(f.calls[1].args.p_shelf_revisions,null);
 });
