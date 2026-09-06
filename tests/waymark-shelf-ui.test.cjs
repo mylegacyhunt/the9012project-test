@@ -42,12 +42,10 @@ test('compact microphone still appends speech, stops before save, and unlocks th
  assert.match(lastState.message,/ready to review/);
 });
 
-test('personal Shelf uses the complete corrected master without a clipped jar patch',()=>{
+test('personal and family Shelves use complete scene masters without clipped jar patches',()=>{
  assert.match(html,/class="frame" src="assets\/images\/themes\/lantern-heritage\/lantern\/lantern-scene-04-half-corrected-app\.jpg"/);
- assert.doesNotMatch(html,/class="shelf-plaque-before" src="assets\/images\/themes\/lantern-heritage\/lantern\/lantern-scene-04-app\.jpg"/);
- assert.match(html,/class="shelf-plaque-before" src="\$\{STRIPS\[4\]\}"/);
- assert.match(html,/\.famstrip \.shelf-plaque-before\{[^}]*object-fit:cover/);
- assert.match(html,/html\[data-theme="heirloom_light"\] \.famstrip \.shelf-plaque-before\{object-fit:contain/);
+ assert.doesNotMatch(html,/shelf-plaque-before/);
+ assert.match(html,/<div class="famstrip"><img src="\$\{STRIPS\[lo\]\}"\/><img class="top" src="\$\{STRIPS\[hi\]\}" style="opacity:\$\{bl\}"\/>\$\{flame\}<span class="snum sbehind">/);
 });
 
 test('personal Shelf stays centered and keeps each original scene ratio',()=>{
