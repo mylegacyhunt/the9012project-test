@@ -1139,7 +1139,7 @@ html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloo
 <!-- END DOORS DESCRIPTIONS -->
 <div class="giftpop" id="giftPop"></div>
 <div class="gwtoast" id="gwToast"></div>
-<div class="erasebar" id="eraseBar" style="display:none"><button class="eraselink" onclick="askEraseAll()">Erase my 90:12 data&hellip;</button></div>
+<div class="erasebar" id="eraseBar" style="display:none"><button class="eraselink" onclick="askEraseAll()">Permanently delete my personal account&hellip;</button></div>
 <footer><span id="saveStatus" class="savestatus" data-state="saved" role="status" aria-live="polite" aria-atomic="true">Saved changes are on this device</span><span class="savehint"> &middot; back up your keepsake to keep it safe</span></footer>
 <div class="sitefoot"><button class="footlink salvationlink" onclick="openSalvation()">The Plan of Salvation</button><span id="howLink" style="display:none"><span class="footdot">&middot;</span><button class="footlink" onclick="openHelp()">How this works</button></span><span class="footdot">&middot;</span><button class="footlink" onclick="suggestSoon()">Share a suggestion</button></div>
 </div>
@@ -1177,15 +1177,15 @@ html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloo
 <div class="modal" id="familyRuleReviewModal"><div class="mbox"><h3 id="familyRuleReviewTitle">Review this Family Rule</h3><input type="hidden" id="familyRuleReviewId"/><label style="display:block;text-align:left;margin:0 0 5px">Did this work?</label><textarea id="ruleDidWork" placeholder="What actually happened when your family lived this out?"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">How did this help?</label><textarea id="ruleHowHelped"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What didn&rsquo;t work?</label><textarea id="ruleDidntWork"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What did we learn?</label><textarea id="ruleLearned"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What should we change?</label><textarea id="ruleShouldChange"></textarea><div class="mrow"><button class="ghost" onclick="closeModal('familyRuleReviewModal')">Cancel</button><button id="familyRuleReviewSave" onclick="saveFamilyRuleReview()">Save Reflection</button></div></div></div>
 <div class="modal" id="familyRuleHistoryModal"><div class="mbox"><h3 id="familyRuleHistoryTitle">Family Rule History</h3><div id="familyRuleHistoryList"><div class="wisdomempty">Loading history&hellip;</div></div><div class="mrow"><button onclick="closeModal('familyRuleHistoryModal')">Done</button></div></div></div>
 <div class="modal" id="eraseModal"><div class="mbox">
-  <h3 id="eraseHead" style="color:#e0a080;margin:0 0 6px">Erase my 90:12 data?</h3>
-  <p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">This permanently erases your 90:12 data from the <b>cloud</b> and then clears the copy cached on this device &mdash; including shelves, Waymarks, 12 Stones, prayers, and journal pages. It cannot be undone.</p>
-  <p style="color:#a99c83;font-size:13px;margin:0 0 12px;line-height:1.5"><b>This keeps your sign-in account.</b> 90:12 will clear this device only after the cloud confirms the erasure. If confirmation fails, nothing on this device will be removed.</p>
-  <p style="color:#a99c83;font-size:13px;margin:0 0 12px;line-height:1.5">This deletion is not limited to this device. The deleted data will no longer be available on your other devices, and household data shared with other signed-in family members may also be removed. Back up first and make sure everyone who depends on this household has saved anything they need.</p>
+  <h3 id="eraseHead" style="color:#e0a080;margin:0 0 6px">Permanently delete my personal account?</h3>
+  <p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">This permanently removes your sign-in account, private journal, prayers, goals, private files, and private recovery history. It cannot be undone.</p>
+  <p style="color:#a99c83;font-size:13px;margin:0 0 12px;line-height:1.5"><b>This does not delete 90:12 or another person&rsquo;s account.</b> Letters, Waymarks, photos, videos, voice recordings, and attachments already shared with connected family remain available to them.</p>
+  <div id="eraseTransferWrap" style="display:none;margin:0 0 14px"><label for="eraseSuccessor" style="display:block;color:#c9b78f;font-size:13px;margin:0 0 6px">Transfer household ownership to</label><select id="eraseSuccessor" onchange="checkErase()" style="width:100%"></select><p style="color:#a99c83;font-size:12px;line-height:1.4;margin:6px 0 0">Connected family members and their information remain in the household.</p></div>
   <p class="eraseerror" id="eraseError" role="alert"></p>
   <button class="ghost mini" style="margin:0 0 14px" onclick="backupData()">&#11015; Back up first</button>
-  <label style="display:block;color:#c9b78f;font-size:13px;margin:0 0 6px">Type <b>ERASE</b> to confirm</label>
-  <input type="text" id="eraseGate" autocomplete="off" autocapitalize="characters" placeholder="ERASE" oninput="checkErase()" style="text-align:center;letter-spacing:.3em;margin:0 0 14px"/>
-  <div class="mrow"><button class="ghost" onclick="closeModal('eraseModal')">Cancel</button><button class="danger" id="eraseGo" disabled style="opacity:.4" onclick="doEraseAll()">Erase my 90:12 data</button></div>
+  <label style="display:block;color:#c9b78f;font-size:13px;margin:0 0 6px">Type <b>DELETE MY ACCOUNT</b> to confirm</label>
+  <input type="text" id="eraseGate" autocomplete="off" autocapitalize="characters" placeholder="DELETE MY ACCOUNT" oninput="checkErase()" style="text-align:center;letter-spacing:.16em;margin:0 0 14px"/>
+  <div class="mrow"><button class="ghost" onclick="closeModal('eraseModal')">Cancel</button><button class="danger" id="eraseGo" disabled style="opacity:.4" onclick="doEraseAll()">Permanently delete my account</button></div>
 </div></div><div class="modal" id="answerModal"><div class="mbox"><h3>He answered</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px">How did God answer this prayer?</p><textarea id="answerNote" placeholder="Tell what He did..."></textarea><div class="mrow"><button class="ghost" onclick="closeModal('answerModal')">Cancel</button><button onclick="saveAnswer()">Mark answered</button></div></div></div><div class="modal" id="gateModal"><div class="mbox" style="text-align:center"><h3>The Secret Place</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 6px">&ldquo;He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.&rdquo;</p><p style="color:#7c7059;font-size:12px;margin:0 0 14px">Psalm 91:1</p><p class="privacyexplain">Your prayers and journal entries inside can be protected by a screen lock.</p><div class="mrow" style="justify-content:center"><button onclick="unlockSecret()">Enter the Secret Place</button></div></div></div>
 <div class="modal" id="screenLockInfoModal"><div class="mbox"><h3>What the Secret Place screen lock protects</h3><p class="screenlockinfo"><strong>It helps prevent casual viewing on this device.</strong> It guards everything inside the Secret Place &mdash; your prayers and your journal. It does not encrypt them, and cannot protect them from someone who has access to this browser&rsquo;s stored website data.</p><p class="screenlockinfo">Your passcode itself is never kept or synced in readable form. Only a scrambled fingerprint of it is stored, so the passcode cannot be read from this device or from the 90:12 servers.</p><p class="screenlockinfo">The Secret Place relocks after five minutes without activity, when this page is hidden, and when the browser closes.</p><div class="mrow"><button onclick="closeModal('screenLockInfoModal')">I understand</button></div></div></div>
 <script>
@@ -1324,6 +1324,7 @@ let cloudHydrating=false;
 let cloudSaving=false;
 let cloudSavePending=false;
 let cloudSaveTimer=null;
+let accountDeletionBusy=false;
 let bootReady=false;
 let onboardingResetNeeded=false;
 const CLOUD_COPY_MARKER='9012_cloud_owner_id';
@@ -1525,14 +1526,16 @@ async function cloudSaveNow(){
   }
 }
 function queueCloudSave(){
-  if(cloudHydrating||!currentSession)return;
+  if(accountDeletionBusy||cloudHydrating||!currentSession)return;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(cloudSaveNow,180);
 }
 async function clearLocal9012(){
-  try{await Store.set('people',[]);await Store.set('releasedPeople',[]);}catch(e){}
-  try{const rm=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('9012_')===0)rm.push(k);}rm.forEach(k=>localStorage.removeItem(k));}catch(e){}
-  try{for(const k in mem)delete mem[k];}catch(e){}
+  let ok=true;
+  try{await Store.set('people',[]);await Store.set('releasedPeople',[]);}catch(e){ok=false;}
+  try{const rm=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('9012_')===0)rm.push(k);}rm.forEach(k=>localStorage.removeItem(k));}catch(e){ok=false;}
+  try{for(const k in mem)delete mem[k];}catch(e){ok=false;}
+  return ok;
 }
 // EXPLORE 9012 CONTROLS — reference only; never changes rooms or sharing.
 let guideReturnFocus=null;
@@ -3374,30 +3377,45 @@ async function doLegacyRestore(){if(!pendingRestore)return;
  showToast(synced?'<span>Legacy restore completed and synced.</span>':'<span>Legacy restore completed in this browser. Cloud connection will need another try.</span>');
 }
 
-/* erase 90:12 data (not the login account), guarded by typed confirmation */
-function askEraseAll(){const head=(people[0]&&people[0].name)?people[0].name:'';const h=el('eraseHead');if(h)h.textContent=head?('Erase '+head+'\u2019s 90:12 data?'):'Erase my 90:12 data?';const g=el('eraseGate');if(g)g.value='';const e=el('eraseError');if(e){e.style.display='none';e.textContent='';}const b=el('eraseGo');if(b){b.disabled=true;b.style.opacity='.4';b.textContent='Erase my 90:12 data';}openModal('eraseModal');}
-function checkErase(){const ok=(el('eraseGate').value.trim().toUpperCase()==='ERASE');const b=el('eraseGo');b.disabled=!ok;b.style.opacity=ok?'1':'.4';}
+/* Permanent personal-account deletion; shared family material survives. */
+async function askEraseAll(){
+ if(!supabaseClient||!currentSession){notify('Sign in required','Sign in before permanently deleting a personal account.');return;}
+ const g=el('eraseGate'),e=el('eraseError'),b=el('eraseGo'),wrap=el('eraseTransferWrap'),select=el('eraseSuccessor');
+ if(g)g.value='';if(e){e.style.display='none';e.textContent='';}if(wrap)wrap.style.display='none';if(select)select.innerHTML='';
+ if(b){b.disabled=true;b.style.opacity='.4';b.textContent='Permanently delete my account';}openModal('eraseModal');
+ const preview=await supabaseClient.rpc('app9012_account_deletion_preview');
+ if(preview.error||!preview.data){showEraseFailure(preview.error||new Error('preview_failed'));return;}
+ if(preview.data.can_delete!==true){showEraseFailure(Object.assign(new Error(preview.data.reason||'account_deletion_blocked'),{code:preview.data.reason}));return;}
+ if(preview.data.requires_transfer){
+   const rows=Array.isArray(preview.data.eligible_successors)?preview.data.eligible_successors:[];
+   if(!rows.length){showEraseFailure(Object.assign(new Error('eligible_successor_required'),{code:'eligible_successor_required'}));return;}
+   select.innerHTML='<option value="">Choose a connected adult</option>'+rows.map(function(r){return '<option value="'+esc(r.person_id)+'">'+esc(r.name)+'</option>';}).join('');wrap.style.display='';
+ }
+ checkErase();
+}
+function checkErase(){const wrap=el('eraseTransferWrap'),successor=el('eraseSuccessor');const transferOk=!wrap||wrap.style.display==='none'||!!successor.value;const ok=(el('eraseGate').value.trim().toUpperCase()==='DELETE MY ACCOUNT')&&transferOk;const b=el('eraseGo');b.disabled=!ok;b.style.opacity=ok?'1':'.4';}
 function withEraseTimeout(promise,ms){return new Promise(function(resolve,reject){const timer=setTimeout(function(){const e=new Error('The cloud did not confirm in time.');e.code='ERASE_TIMEOUT';reject(e);},ms);Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(err){clearTimeout(timer);reject(err);});});}
-function showEraseFailure(err){const box=el('eraseError');let msg='90:12 could not confirm the cloud erasure, so nothing on this device was removed. Please try again.';if(!currentSession)msg='Please sign in again before erasing cloud data. Nothing on this device was removed.';else if(err&&err.code==='ERASE_TIMEOUT')msg='The cloud did not confirm in time. Nothing on this device was removed. Check your connection and try again.';else if(typeof navigator!=='undefined'&&navigator.onLine===false)msg='You appear to be offline. Nothing on this device was removed. Reconnect and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
-async function eraseLegacyCloudCopy(){const r=await supabaseClient.from('keepsakes').upsert({user_id:currentSession.user.id,people:[],released_people:[],updated_at:new Date().toISOString()},{onConflict:'user_id'}).select('user_id').single();if(r.error)throw r.error;if(!r.data||String(r.data.user_id)!==String(currentSession.user.id))throw new Error('Cloud erasure was not confirmed.');}
-async function eraseCloudCopy(){
-  if(!supabaseClient||!currentSession||!currentSession.user)throw new Error('A signed-in cloud session is required.');
-  if(cloudMode==='legacy'){await eraseLegacyCloudCopy();return;}
-  const r=await supabaseClient.rpc('app9012_erase_all');
-  if(r.error){if(cloudMode==='local'&&isMissingStep3CRpc(r.error)){await eraseLegacyCloudCopy();return;}throw r.error;}
+function showEraseFailure(err){const box=el('eraseError');const code=err&&err.code;let msg='Your account was not confirmed deleted. Nothing on this device was cleared. Please try again.';if(!currentSession)msg='Please sign in again before deleting your account.';else if(code==='ERASE_TIMEOUT')msg='The server did not confirm in time. Keep this page open, check your connection, and try again.';else if(code==='eligible_successor_required'||code==='household_owner_transfer_required')msg='A household owner must transfer ownership to a connected adult before deleting their account.';else if(code==='parent_managed_shelf')msg='This parent-managed shelf must be released before its account can be deleted.';else if(code==='DEVICE_CLEANUP_FAILED')msg='Your cloud account was deleted, but this browser could not clear every cached copy. Close this page and clear this site\u2019s browser data.';else if(typeof navigator!=='undefined'&&navigator.onLine===false)msg='You appear to be offline. Reconnect and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
+async function eraseCloudCopy(successorPersonId){
+ if(!supabaseClient||!currentSession||!currentSession.user)throw Object.assign(new Error('authentication_required'),{code:'authentication_required'});
+ const result=await supabaseClient.functions.invoke('delete-account',{body:{confirmation:'DELETE MY ACCOUNT',successorPersonId:successorPersonId||undefined}});
+ if(result.error){try{const payload=await result.error.context.json();if(payload&&payload.error)result.error.code=payload.error;}catch(e){}throw result.error;}if(!result.data||result.data.deleted!==true)throw Object.assign(new Error((result.data&&result.data.error)||'deletion_not_confirmed'),{code:(result.data&&result.data.error)||'deletion_not_confirmed'});
+ return true;
 }
 async function doEraseAll(){
- const b=el('eraseGo'),g=el('eraseGate'),knownCloud=hasKnownCloudCopy();
- if(b){b.disabled=true;b.style.opacity='.65';b.textContent='Waiting for cloud confirmation\u2026';}if(g)g.disabled=true;
+ const b=el('eraseGo'),g=el('eraseGate'),select=el('eraseSuccessor');
+ if(accountDeletionBusy)return false;if(cloudSaving||cloudHydrating||cloudLoadPromise){showEraseFailure(Object.assign(new Error('save_in_progress'),{code:'save_in_progress'}));return false;}
+ accountDeletionBusy=true;clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSavePending=false;
+ if(b){b.disabled=true;b.style.opacity='.65';b.textContent='Deleting personal account\u2026';}if(g)g.disabled=true;if(select)select.disabled=true;
  try{
-   if(knownCloud)await withEraseTimeout(eraseCloudCopy(),15000);
- }catch(e){console.error('90:12 cloud erase failed:',e);showEraseFailure(e);if(g)g.disabled=false;if(b){b.disabled=false;b.style.opacity='1';b.textContent='Try erasing again';}return false;}
- // Only a confirmed cloud erase (or a truly local-only shelf) may clear this device.
- await clearLocal9012();
+   await withEraseTimeout(eraseCloudCopy(select&&select.value),60000);
+ }catch(e){console.error('90:12 account deletion failed:',e);accountDeletionBusy=false;showEraseFailure(e);if(g)g.disabled=false;if(select)select.disabled=false;if(b){b.disabled=false;b.style.opacity='1';b.textContent='Try deleting again';}return false;}
+ try{await supabaseClient.auth.signOut({scope:'local'});}catch(e){}
+ const cleared=await clearLocal9012();
  people=[];releasedPeople=[];cur=0;activePersonId=null;householdRole=null;householdId=null;
- closeModal('eraseModal');
- routeHome();
- showToast('<span>Your 90:12 data was erased. Your sign-in account remains open.</span>');
+ currentSession=null;cloudMode='local';accountDeletionBusy=false;
+ if(!cleared){showEraseFailure(Object.assign(new Error('device_cleanup_failed'),{code:'DEVICE_CLEANUP_FAILED'}));return false;}
+ closeModal('eraseModal');routeHome();showToast('<span>Your personal account was permanently deleted. 90:12 and your family\u2019s accounts remain.</span>');
  return true;
 }
 
