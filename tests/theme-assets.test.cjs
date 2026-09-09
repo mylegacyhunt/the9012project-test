@@ -113,6 +113,16 @@ test('saved theme loads, invalid keys fall back, and cross-tab storage refresh s
  f.storage.set('9012_visual_theme','lantern_heritage');f.events.storage({key:'9012_visual_theme'});assert.equal(f.frames[0].src,assets.lantern_heritage.scenes[0]);
  assert.equal(f.run("applyAppTheme('not-a-theme')"),'lantern_heritage');
 });
+test('both themes use the 90:12 logo, hands-held entrance, and full Elias letter artwork',()=>{
+ assert.match(html,/id="splashLogo"[^>]*><img src="assets\/images\/themes\/lantern-heritage\/other\/9012-logo-app\.jpg"/);
+ assert.match(html,/id="splashWoman"[^>]*><img src="assets\/images\/themes\/lantern-heritage\/other\/splash-woman-app\.jpg"/);
+ assert.match(html,/class="letterimg" src="assets\/images\/themes\/lantern-heritage\/journal\/letter-screen-app\.jpg"/);
+ assert.doesNotMatch(html,/html\[data-theme="heirloom_light"\][^\n{]*letterimg[^\n}]*display:none/);
+ assert.doesNotMatch(html,/html\[data-theme="heirloom_light"\][^\n{]*#splashWoman[^\n}]*display:none/);
+ assert.doesNotMatch(html,/lightletter/);
+ assert.match(html,/function openLetter\(\)[^{]*\{[^}]*querySelector\('\.letterimg'\)[^}]*classList\.add\('shown'\)/);
+ const f=fixture();f.run("applyAppTheme('heirloom_light')");assert.equal(f.splash.src,'assets/images/themes/lantern-heritage/other/9012-logo-app.jpg');
+});
 test('a signed-in choice is saved to the account for every device',async()=>{
  const f=fixture({catalog:[{theme_key:'heirloom_light',status:'available'}]});await f.run('openThemeChoice(false)');f.run("chooseThemeCard('heirloom_light')");await f.run('continueFromThemeChoice()');
  const save=f.calls.find(c=>c.name==='app9012_set_my_theme');assert.equal(save.args.p_theme_key,'heirloom_light');

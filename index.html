@@ -518,9 +518,6 @@ html[data-theme="heirloom_light"] .rules-scroll{min-height:0;background-image:no
 html[data-theme="heirloom_light"] .secretdoor{max-width:380px;border:1px solid #d8c9af;border-radius:20px;background:#f8f3e8;overflow:hidden;padding:0 0 20px;box-shadow:0 14px 30px rgba(78,59,38,.12);}
 html[data-theme="heirloom_light"] .secretdoor img{display:block;height:auto;filter:none;}html[data-theme="heirloom_light"] .secretdoor .doorcaption{padding:0 14px;font-size:17px;letter-spacing:.12em;color:#594631;}
 html[data-theme="heirloom_light"] .secretdoor:focus-visible{outline-color:#4f5b42;}
-.lightletter{display:none;}
-html[data-theme="heirloom_light"] .lightletter{display:block;max-width:660px;margin:28px auto;padding:32px 26px;background:#fffaf0;color:#584330;border:1px solid #ccba9d;border-radius:12px;font-family:'EB Garamond',Georgia,serif;font-size:20px;line-height:1.6;}
-html[data-theme="heirloom_light"] .letterimg,html[data-theme="heirloom_light"] #splashWoman{display:none!important;}
 html[data-theme="heirloom_light"] .splash{background:#f5eddf;}
 html[data-theme="heirloom_light"] #splashLogo img{width:min(512px,90vw);max-height:90vh;animation:none;}
 html[data-theme="heirloom_light"] .gate p,html[data-theme="heirloom_light"] .writer p.small,html[data-theme="heirloom_light"] .hint,html[data-theme="heirloom_light"] .firstjourney .eyebrow{color:#76604a;}
@@ -690,12 +687,6 @@ html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloo
 
 <div class="view active" id="viewLetter">
   <img class="letterimg" src="assets/images/themes/lantern-heritage/journal/letter-screen-app.jpg" alt="A letter from Elias Gracewind"/>
-  <article class="lightletter" aria-label="Welcome to 90:12">
-    <h1>Your story is worth preserving.</h1>
-    <p>“For we are not merely preserving memories. We are preserving the legacy of those who came before us, so those who follow after us will know who they are.”</p>
-    <p>— Elias Gracewind</p>
-    <p>Begin with one memory, one prayer, one lesson you want your family to carry forward.</p>
-  </article>
   <div class="legacyEntry">
     <div class="legacyBegin">Begin Your Legacy Below</div>
     <div class="gate">
@@ -2089,7 +2080,7 @@ async function saveNewPassword(){
         if(status&&activeViewId()==='viewLetter')status.textContent='';
       }
     }
-function openLetter(){el('letterBtn').textContent=currentSession?'\u2190 Back':'Sign In';show('viewLetter');var gate=document.querySelector('#viewLetter .gate');if(gate)gate.classList.add('shown');if(!currentSession)showEntryMode('signin');}
+function openLetter(){el('letterBtn').textContent=currentSession?'\u2190 Back':'Sign In';show('viewLetter');var letter=document.querySelector('.letterimg');if(letter)letter.classList.add('shown');var gate=document.querySelector('#viewLetter .gate');if(gate)gate.classList.add('shown');if(!currentSession)showEntryMode('signin');}
 function begin(){show('viewMe');}
 
 let gender='m';
@@ -3627,7 +3618,7 @@ function applyAppTheme(key,persist){
   if(FAMILY_FLAME){if(!flame){flame=document.createElement('img');flame.className='sflame';flame.alt='';strip.appendChild(flame);}flame.src=FAMILY_FLAME;}
   else if(flame)flame.remove();
  });
- const splash=document.querySelector('#splashLogo img');if(splash)splash.src=currentThemeKey==='heirloom_light'?'assets/images/themes/heirloom-light/icons/app-icon-512-v3-app.png':'assets/images/themes/lantern-heritage/other/9012-logo-app.jpg';
+ const splash=document.querySelector('#splashLogo img');if(splash)splash.src='assets/images/themes/lantern-heritage/other/9012-logo-app.jpg';
  const stonesHead=document.querySelector('#view12Stones .stoneshead img');if(stonesHead)stonesHead.src=CAIRN;
  if(el('emPalaceIcon'))el('emPalaceIcon').src=PALACE;if(el('emStonesIcon'))el('emStonesIcon').src=CAIRN;
  if(persist!==false){try{localStorage.setItem(VISUAL_THEME_KEY,currentThemeKey);}catch(e){}}
