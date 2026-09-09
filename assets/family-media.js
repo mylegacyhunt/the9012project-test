@@ -211,7 +211,7 @@
     doc.addEventListener('visibilitychange',()=>{if(doc.hidden){recorder.stop();closeViewer();}});
     root.addEventListener('pagehide',()=>{active=false;reset();});
     root.addEventListener('beforeunload',e=>{if(draft||busy||recorder.busy()){e.preventDefault();e.returnValue='';}});
-    root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset};update();sync();
+    root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset,hasPendingWork:()=>!!draft||busy||recorder.busy()};update();sync();
   }
   return {BUCKET,TYPES,LIMITS,validateFile,sameAccount,createRecorder,shareDraft,mount};
 }));

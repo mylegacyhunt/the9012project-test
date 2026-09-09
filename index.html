@@ -5,6 +5,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" id="appThemeColor" content="#140d06"/>
+<meta name="app-build" content="2026.09.09.4"/>
 <link rel="icon" id="appFavicon" type="image/png" sizes="32x32" href="assets/images/themes/lantern-heritage/icons/app-icon-32-v1-app.png"/>
 <link rel="apple-touch-icon" id="appTouchIcon" sizes="180x180" href="assets/images/themes/lantern-heritage/icons/app-icon-180-v1-app.png"/>
 <link rel="manifest" id="appManifest" href="manifest.webmanifest"/>
@@ -12,8 +13,8 @@
 <link rel="stylesheet" href="assets/waymark-dictation.css?v=20260903b"/>
 <script src="assets/waymark-dictation.js?v=20260903b" defer></script>
 <!-- FAMILY MEDIA ASSETS -->
-<link rel="stylesheet" href="assets/family-media.css"/>
-<script src="assets/family-media.js" defer></script>
+<link rel="stylesheet" href="assets/family-media.css?v=20260909c"/>
+<script src="assets/family-media.js?v=20260909c" defer></script>
 <!-- END FAMILY MEDIA ASSETS -->
 <!-- NAVIGATION EXPLANATIONS ASSETS -->
 <link rel="stylesheet" href="assets/navigation-explanations.css"/>
@@ -104,6 +105,7 @@
 .view{display:none;} .view.active{display:block;animation:fade .5s ease;}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .brand{text-align:center;font-family:'Cormorant Garamond',serif;letter-spacing:.4em;text-transform:uppercase;font-size:12px;color:#C9A84C;margin-bottom:14px;padding-left:.4em;}
+.appupdate{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:500;transform:translateX(-50%);width:min(620px,calc(100% - 28px));box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;border:1px solid #c9a84c;border-radius:14px;background:rgba(28,20,12,.97);color:#f2dfb3;box-shadow:0 14px 38px rgba(0,0,0,.48);font-size:15px;line-height:1.35}.appupdate[hidden]{display:none}.appupdate button{flex:0 0 auto;margin:0;padding:8px 15px}.appupdate button:focus-visible{outline:2px solid #fff0c5;outline-offset:3px}
 .splash{position:fixed;inset:0;background:#0b0704;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity 2.2s ease;}
 .splash img{max-width:100%;max-height:100%;object-fit:contain;} .splash.hide{opacity:0;pointer-events:none;}
 .splash.diffuse{opacity:0;pointer-events:none;}
@@ -579,11 +581,13 @@ html[data-theme="heirloom_light"] .modal{background:rgba(70,55,40,.34);}html[dat
 html[data-theme="heirloom_light"] .photocard,html[data-theme="heirloom_light"] .photoimgwrap{background:#f0e5d5;}html[data-theme="heirloom_light"] .photocaption,html[data-theme="heirloom_light"] .photocomment,html[data-theme="heirloom_light"] .fsmessagetext{color:#574636;}html[data-theme="heirloom_light"] .sourcebadge{background:rgba(128,145,107,.12);color:#546044;border-color:rgba(105,125,86,.35);}
 html[data-theme="heirloom_light"] .themecard{background:#fffaf1;border-color:rgba(128,103,70,.3);}html[data-theme="heirloom_light"] .themecard h3,html[data-theme="heirloom_light"] .themecard.heirloom h3{color:#4e3d2d;}html[data-theme="heirloom_light"] .themecard p{color:#766652;}html[data-theme="heirloom_light"] .themecard.selected{box-shadow:0 0 0 2px rgba(126,145,104,.75) inset,0 12px 28px rgba(69,51,33,.12);}html[data-theme="heirloom_light"] .themebadge{color:#556146;background:rgba(126,145,104,.14);border-color:rgba(126,145,104,.4);}
 html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloom_light"] .savestatus[data-state="saving"]{color:#775d29;}html[data-theme="heirloom_light"] .savestatus[data-state="failed"]{color:#8d3628;}html[data-theme="heirloom_light"] .savehint{color:#766957;}
+html[data-theme="heirloom_light"] .appupdate{background:rgba(255,250,240,.98);color:#54422f;border-color:#87966f;box-shadow:0 14px 34px rgba(73,53,35,.22)}
 @media(max-width:700px){html[data-theme="heirloom_light"] .rules-scroll{padding:30px 24px;}html[data-theme="heirloom_light"] .parchsheet,html[data-theme="heirloom_light"] .familypaper{padding:16px 12px;}}
 
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
 <div class="splash" id="splashLogo" onclick="fadeLogo()"><img src="assets/images/themes/lantern-heritage/other/9012-logo-app.jpg" alt="90:12 The Project"/></div>
 <div class="splash" id="splashWoman" onclick="fadeWoman()"><img src="assets/images/themes/lantern-heritage/other/splash-woman-app.jpg" alt="A letter, handed to you"/></div>
+<div class="appupdate" id="appUpdateNotice" role="status" aria-live="polite" aria-atomic="true" hidden><span id="appUpdateMessage">A newer version of 90:12 is ready.</span><button type="button" id="appUpdateButton" onclick="applyAppUpdate9012()">Update now</button></div>
 <div class="secretseq" id="secretSeq" role="dialog" aria-modal="true" aria-label="Walk into the Secret Place" tabindex="-1"><img alt=""/><img alt=""/><img alt=""/><img alt=""/><img alt=""/><div class="walkstatus" role="status" aria-live="polite"></div><div class="walkcontrols"><button type="button" data-walk-next>Next view</button><button type="button" data-walk-skip>Enter now</button></div></div>
 <dialog class="signoutdialog" id="signOutDialog" aria-labelledby="signOutTitle" aria-describedby="signOutDescription" oncancel="if(signOutBusy)event.preventDefault()" onkeydown="if(event.key==='Escape'){event.preventDefault();closeSignOut9012();}">
   <h2 id="signOutTitle">Sign out of this device?</h2>
@@ -3944,7 +3948,7 @@ if(supabaseClient){
 })();
 </script>
 <!-- KEEPSAKE FEATURES -->
-<link rel="stylesheet" href="assets/keepsakes.css"/>
+<link rel="stylesheet" href="assets/keepsakes.css?v=20260909c"/>
 <script>
 window.app9012KeepsakeBridge={
  context:function(){return {client:supabaseClient,userId:currentSession&&currentSession.user?currentSession.user.id:null,householdId:cloudMode==='household'?householdId:null,personId:activePersonId};},
@@ -3975,7 +3979,7 @@ window.app9012KeepsakeBridge={
  openSource:function(kind,id,personId){var index=people.findIndex(function(p){return p.id===personId;});if(index<0){say('The source shelf is not available to this account.');return;}var p=people[index],key=kind==='waymark'?'waymarks':'goals';if(!(p[key]||[]).some(function(x){return String(x.id)===String(id);})){say('The original entry is private, no longer available, or has not synced to this device.');return;}cur=index;_scrollTo=(kind==='waymark'?'wm_':'g_')+id;tab(kind==='waymark'?'viewWaymarks':'viewChart');scrollToTarget();}
 };
 </script>
-<script src="assets/keepsakes.js"></script>
+<script src="assets/keepsakes.js?v=20260909c"></script>
 <!-- END KEEPSAKE FEATURES -->
 <script>
 /* SAVE RELIABILITY CONTROLS
@@ -4077,5 +4081,69 @@ window.app9012KeepsakeBridge={
  renderSaveStatus();
 })();
 /* END SAVE RELIABILITY CONTROLS */
+/* APP UPDATE CONTROLS */
+(function(){
+ const meta=document.querySelector('meta[name="app-build"]'),currentBuild=meta?meta.content:'',loadedModified=Date.parse(document.lastModified)||0;
+ const checkEvery=5*60*1000,autoDelay=10000;
+ const autoSafeViews=new Set(['viewJar','viewFamily','viewFamilyShelf','viewFamilyPhotos','view12Stones','viewWisdom','viewHelp','viewSalvation','viewRecentlyDeleted','viewThemeChoice']);
+ let checking=false,latestBuild='',autoTimer=null,reloading=false;
+ function notice(message){const box=el('appUpdateNotice'),text=el('appUpdateMessage');if(text)text.textContent=message;if(box)box.hidden=false;}
+ function moduleHasPendingWork(api){try{return !!(api&&typeof api.hasPendingWork==='function'&&api.hasPendingWork());}catch(e){return true;}}
+ function updateIsSafe(){
+  if(!bootReady||accountDeletionBusy||cloudSaving||cloudSavePending||cloudHydrating||cloudLoadPromise)return false;
+  const save=window.app9012SaveReliability&&window.app9012SaveReliability.status?window.app9012SaveReliability.status():null;
+  if(save&&save.device==='failed')return false;
+  if(moduleHasPendingWork(window.app9012Keepsakes)||moduleHasPendingWork(window.app9012FamilyMedia))return false;
+  if(document.querySelector('dialog[open],.modal.open'))return false;
+  const active=document.activeElement;
+  if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]'))return false;
+  return autoSafeViews.has(activeViewId());
+ }
+ function scheduleSafeUpdate(){
+  if(!latestBuild||reloading)return;
+  if(document.visibilityState!=='visible'||!updateIsSafe()){
+   if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}
+   notice('A newer version of 90:12 is ready. Finish or save what you are doing, then return to your Shelf and choose Update now.');
+   return;
+  }
+  notice('A newer version of 90:12 is ready. This page will update automatically in a moment.');
+  if(!autoTimer)autoTimer=setTimeout(function(){autoTimer=null;applyUpdate(true);},autoDelay);
+ }
+ async function waitForSaves(){
+  if(window.app9012SaveReliability&&window.app9012SaveReliability.flush)window.app9012SaveReliability.flush();
+  const deadline=Date.now()+8000;
+  while((cloudSaving||cloudSavePending||cloudHydrating||cloudLoadPromise)&&Date.now()<deadline)await new Promise(function(resolve){setTimeout(resolve,100);});
+  return !(cloudSaving||cloudSavePending||cloudHydrating||cloudLoadPromise);
+ }
+ async function applyUpdate(){
+  if(!latestBuild||reloading)return false;
+  if(!updateIsSafe()){scheduleSafeUpdate();return false;}
+  reloading=true;if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}
+  notice('Saving your latest changes and opening the new version…');
+  if(!await waitForSaves()){reloading=false;notice('The new version is ready, but an account save is still finishing. Keep this page open and try Update now again.');return false;}
+  const url=new URL(location.href);url.searchParams.set('appBuild',latestBuild);url.searchParams.set('appRefresh',String(Date.now()));location.replace(url.toString());return true;
+ }
+ async function checkForUpdate(){
+  if(checking||reloading||!currentBuild||typeof fetch!=='function'||(typeof navigator!=='undefined'&&navigator.onLine===false))return false;
+  checking=true;
+  try{
+   const url=new URL('./index.html',document.baseURI);url.searchParams.set('appUpdateCheck',String(Date.now()));
+   const response=await fetch(url.toString(),{cache:'no-store',credentials:'same-origin'});if(!response.ok)return false;
+   const source=await response.text(),match=source.match(/<meta name=["']app-build["'] content=["']([^"']+)["']/i);
+   const remoteModified=Date.parse(response.headers&&response.headers.get?response.headers.get('last-modified'):'')||0;
+   const buildChanged=!!(match&&match[1]&&match[1]!==currentBuild),fileChanged=!!(loadedModified&&remoteModified&&remoteModified>loadedModified);
+   if(buildChanged||fileChanged){latestBuild=buildChanged?match[1]:currentBuild+'-'+remoteModified;scheduleSafeUpdate();return true;}
+  }catch(e){console.warn('90:12 update check unavailable',e);}
+  finally{checking=false;}
+  return false;
+ }
+ window.applyAppUpdate9012=applyUpdate;
+ window.app9012Updates={check:checkForUpdate,currentBuild:currentBuild,hasUpdate:function(){return !!latestBuild;}};
+ setInterval(checkForUpdate,checkEvery);setInterval(function(){if(latestBuild)scheduleSafeUpdate();},5000);
+ window.addEventListener('online',checkForUpdate);window.addEventListener('focus',checkForUpdate);
+ document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkForUpdate();});
+ setTimeout(checkForUpdate,15000);
+})();
+/* END APP UPDATE CONTROLS */
 </script>
 </body></html>

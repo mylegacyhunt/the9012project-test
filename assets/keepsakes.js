@@ -259,7 +259,7 @@
    const intro=doc.querySelector('[data-guide-name="Golden Nuggets"]')?.closest('.guidegroup')?.querySelector('.guidegroupintro');if(intro)intro.textContent='Wisdom gathers short truths, fuller Life Lessons, and Family Rules: what you learned, why it matters, and how you will live.';
    const flow=doc.querySelectorAll('#appGuideFlow em');for(const e of flow)if(e.parentElement.textContent.startsWith('Golden Nuggets'))e.remove();
    const list=doc.getElementById('fsMessages');if(list)list.before(note('Older Family Shelf messages remain here under their original sharing rules. New private letters are only in each account’s Letters area.'));
-   root.app9012Keepsakes={openNuggets,compose,letters:()=>unlock(()=>letters()),attachments,fromWriter,refresh:sync};sync();
+   root.app9012Keepsakes={openNuggets,compose,letters:()=>unlock(()=>letters()),attachments,fromWriter,refresh:sync,hasPendingWork:()=>busy||!!(letterDraft&&letterDraft.body&&letterDraft.body.trim())};sync();
    new root.MutationObserver(sync).observe(doc.querySelector('.wrap')||doc.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
    root.setInterval(()=>{if(token&&Date.now()>=tokenDeadline){token='';tokenDeadline=0;close(true);}sync();poll();},15000);
    doc.addEventListener('visibilitychange',()=>{if(doc.hidden){token='';tokenDeadline=0;close(true);}else{sync();poll();}});
