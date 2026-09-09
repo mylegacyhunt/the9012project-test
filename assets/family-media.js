@@ -33,21 +33,20 @@
     const info=validateFile(draft&&draft.file),now=Number.isFinite(clock)?clock:Date.now();
     const allowed=['file_picker','clipboard','voice_recorder'];
     const sourceType=allowed.includes(draft&&draft.sourceType)?draft.sourceType:'file_picker';
-    if(info.kind==='voice')return {capturedAt:null,capturedAtOffsetMinutes:null,sourceType,metadataStatus:'not_applicable',timezoneStatus:'not_applicable'};
-    const match=String(manualDate||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(match){
-      const local=new Date(Number(match[1]),Number(match[2])-1,Number(match[3]),12,0,0,0);
-      if(local.getFullYear()===Number(match[1])&&local.getMonth()===Number(match[2])-1&&local.getDate()===Number(match[3])&&local.getTime()<=now+86400000){
-        return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'manual',timezoneStatus:'device_local'};
-      }
-    }
+    if(info.kind==='voice')return {capturedAt:null,capturedAtOffsetMinutes:null,manualCaptureOverride:null,manualCaptureOffsetMinutes:null,sourceType,metadataStatus:'not_applicable',timezoneStatus:'not_applicable'};
     const modified=Number(draft&&draft.file&&draft.file.lastModified);
+    let captured,metadataStatus,timezoneStatus;
     if(sourceType==='file_picker'&&Number.isFinite(modified)&&modified>0&&modified<=now+86400000){
-      const local=new Date(modified);
-      return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'estimated',timezoneStatus:'unknown'};
+      captured=new Date(modified);metadataStatus='estimated';timezoneStatus='unknown';
+    }else{
+      captured=new Date(now);metadataStatus='fallback';timezoneStatus='device_local';
     }
-    const local=new Date(now);
-    return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'fallback',timezoneStatus:'device_local'};
+    let manualCaptureOverride=null,manualCaptureOffsetMinutes=null;
+    if(String(manualDate||'').trim()){
+      const corrected=new Date(String(manualDate));
+      if(Number.isFinite(corrected.getTime())&&corrected.getTime()<=now+86400000){manualCaptureOverride=corrected.toISOString();manualCaptureOffsetMinutes=-corrected.getTimezoneOffset();metadataStatus='user_corrected';}
+    }
+    return {capturedAt:captured.toISOString(),capturedAtOffsetMinutes:-captured.getTimezoneOffset(),manualCaptureOverride,manualCaptureOffsetMinutes,sourceType,metadataStatus,timezoneStatus};
   }
   function sameAccount(a,b){return !!(a&&b&&a.userId&&a.householdId&&a.userId===b.userId&&a.householdId===b.householdId&&a.client===b.client);}
   function createRecorder(options){
@@ -87,7 +86,7 @@
     check();if(!options.consent)throw Error('Confirm that you want to share this with your connected family.');
     const call=async(name,args)=>{check();const r=await context.client.rpc(name,args);check();if(r.error)throw r.error;return r.data;};
     const fallbackName=info.kind==='photo'?'Pasted picture.'+info.extension:info.kind==='video'?'Shared video.'+info.extension:'Voice recording.'+info.extension;
-    const row=await call('app9012_media_begin_v2',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||fallbackName).slice(0,180),p_caption:options.caption,p_transcript:options.transcript,p_captured_at:details.capturedAt,p_captured_at_offset_minutes:details.capturedAtOffsetMinutes,p_source_type:details.sourceType,p_metadata_status:details.metadataStatus,p_timezone_status:details.timezoneStatus});
+    const row=await call('app9012_media_begin_v3',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||fallbackName).slice(0,180),p_caption:options.caption,p_transcript:options.transcript,p_captured_at:details.capturedAt,p_captured_at_offset_minutes:details.capturedAtOffsetMinutes,p_manual_capture_override:details.manualCaptureOverride,p_manual_capture_offset_minutes:details.manualCaptureOffsetMinutes,p_source_type:details.sourceType,p_metadata_status:details.metadataStatus,p_timezone_status:details.timezoneStatus});
     const expected=context.householdId+'/'+context.userId+'/'+draft.id;
     if(!row||row.storage_path!==expected)throw Error('The server did not confirm a safe upload location.');
     if(row.state==='shared')return {shared:true,id:draft.id};
@@ -128,7 +127,7 @@
     const editor=node('section','fm-editor');editor.hidden=true;
     const preview=node('div','fm-preview');
     const captionLabel=node('label','','Caption (optional)');const caption=node('textarea');caption.id='familyMediaCaption';caption.maxLength=1000;caption.rows=2;captionLabel.htmlFor=caption.id;
-    const captureLabel=node('label','','When was this taken? (optional)');const captureDate=node('input');captureDate.type='date';captureDate.id='familyMediaCaptureDate';captureLabel.htmlFor=captureDate.id;
+    const captureLabel=node('label','','When was this taken? (optional)');const captureDate=node('input');captureDate.type='datetime-local';captureDate.id='familyMediaCaptureDate';captureLabel.htmlFor=captureDate.id;
     const captureNote=node('p','fm-hint','We use the device file date when available. You can correct it here. Location information is not copied.');let captureDateTouched=false;
     const transcriptLabel=node('label','','Written transcript (optional — type or paste)');const transcript=node('textarea');transcript.id='familyMediaTranscript';transcript.maxLength=12000;transcript.rows=4;transcriptLabel.htmlFor=transcript.id;
     const consentLabel=node('label','fm-consent');const consent=node('input');consent.type='checkbox';consent.id='familyMediaConsent';consentLabel.append(consent,doc.createTextNode(' Share this file and its text with my connected family.'));
@@ -169,8 +168,9 @@
       if(!active||!enabled||busy)return;
       try{const info=validateFile(file);clearDraft();draft={file,id:root.crypto.randomUUID(),uploaded:false,sourceType:sourceType||'file_picker'};draftURL=root.URL.createObjectURL(file);
         preview.append(player(file,draftURL,'Your unshared picture'));transcript.hidden=transcriptLabel.hidden=info.kind!=='voice';captureDate.hidden=captureLabel.hidden=captureNote.hidden=info.kind==='voice';
-        const today=new Date();captureDate.max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
-        if(info.kind!=='voice'&&draft.sourceType==='file_picker'&&Number.isFinite(Number(file.lastModified))&&Number(file.lastModified)>0){const d=new Date(Number(file.lastModified));captureDate.value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+        const localValue=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')+'T'+[String(d.getHours()).padStart(2,'0'),String(d.getMinutes()).padStart(2,'0')].join(':');
+        const today=new Date();captureDate.max=localValue(today);
+        if(info.kind!=='voice'&&draft.sourceType==='file_picker'&&Number.isFinite(Number(file.lastModified))&&Number(file.lastModified)>0)captureDate.value=localValue(new Date(Number(file.lastModified)));
         editor.hidden=false;setStatus('Ready to preview. Nothing has been shared.');update();
       }catch(e){fileInput.value='';setStatus(e.message);}
     }
@@ -201,7 +201,7 @@
         if(start!==epoch||!sameAccount(ctx,context()))return;
         if(access.error||!access.data?.enabled||access.data.user_id!==ctx.userId||access.data.household_id!==ctx.householdId)throw Error('not_enabled');
         enabled=true;if(reset){rows=[];nextPage=0;}
-        const r=await ctx.client.from('app9012_family_media').select('id,storage_path,original_filename,media_kind,mime_type,byte_size,caption,transcript,uploader_name,uploader_user_id,captured_at,metadata_status,shared_at').eq('household_id',ctx.householdId).eq('state','shared').order('captured_at',{ascending:false,nullsFirst:false}).order('shared_at',{ascending:false}).order('id',{ascending:false}).range(nextPage,nextPage+23);
+        const r=await ctx.client.from('app9012_family_media').select('id,storage_path,original_filename,media_kind,mime_type,byte_size,caption,transcript,uploader_name,uploader_user_id,captured_at,manual_capture_override,effective_captured_at,metadata_status,shared_at').eq('household_id',ctx.householdId).eq('state','shared').order('effective_captured_at',{ascending:false,nullsFirst:false}).order('shared_at',{ascending:false}).order('id',{ascending:false}).range(nextPage,nextPage+23);
         if(start!==epoch||!sameAccount(ctx,context()))return;if(r.error)throw r.error;
         const page=r.data||[];rows=[...new Map(rows.concat(page).map(r=>[r.id,r])).values()];nextPage+=page.length;more.hidden=page.length<24;
         drawRows();if(!draft&&!recorder.busy())setStatus('Private family test — only your connected household can open these files.');
@@ -213,7 +213,7 @@
       if(!shown.length){gallery.append(node('p','fm-empty',rows.length?'No '+filter+' memories in the loaded items.':'Your family’s pictures, videos and voices will gather here.'));return;}
       for(const row of shown){
         const card=node('article','fm-card');const kind={photo:'Picture',video:'Video',voice:'Voice recording'}[row.media_kind]||'Memory';
-        const memoryDate=row.captured_at||row.shared_at,dateNote=row.metadata_status==='manual'?' · date corrected':row.metadata_status==='estimated'||row.metadata_status==='fallback'?' · date estimated':'';
+        const memoryDate=row.effective_captured_at||row.captured_at||row.shared_at,dateNote=row.metadata_status==='user_corrected'?' · date corrected':row.metadata_status==='estimated'||row.metadata_status==='fallback'?' · date estimated':'';
         card.append(node('span','fm-kind',kind),node('h3','',row.caption||row.original_filename||kind),node('p','fm-meta',(row.uploader_name||'Family member')+' · '+new Date(memoryDate).toLocaleDateString()+dateNote));
         const open=button(row.media_kind==='photo'?'Open picture':row.media_kind==='video'?'Open video':'Listen to voice',()=>openMedia(row,open));card.append(open);
         if(row.transcript){const details=node('details');details.append(node('summary','','Read transcript'),node('p','fm-transcript',row.transcript));card.append(details);}
