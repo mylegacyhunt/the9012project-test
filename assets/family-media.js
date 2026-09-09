@@ -20,6 +20,15 @@
     if(file.size>LIMITS[info[0]])throw Error('For family testing, '+info[0]+' files must be '+LIMITS[info[0]]/1024/1024+' MB or smaller.');
     return {kind:info[0],mime,extension:info[1]};
   }
+  function clipboardImage(data){
+    if(!data)return null;
+    const items=data.items?Array.from(data.items):[];
+    const item=items.find(entry=>entry&&entry.kind==='file'&&String(entry.type||'').toLowerCase().startsWith('image/'));
+    const fromItem=item&&typeof item.getAsFile==='function'?item.getAsFile():null;
+    if(fromItem)return fromItem;
+    const files=data.files?Array.from(data.files):[];
+    return files.find(file=>String(file&&file.type||'').toLowerCase().startsWith('image/'))||null;
+  }
   function sameAccount(a,b){return !!(a&&b&&a.userId&&a.householdId&&a.userId===b.userId&&a.householdId===b.householdId&&a.client===b.client);}
   function createRecorder(options){
     let active=null;const later=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -57,7 +66,8 @@
     const check=()=>{if(!sameAccount(context,options.context())||options.cancelled())throw Error('The account or screen changed. Nothing further will be shared from this screen.');};
     check();if(!options.consent)throw Error('Confirm that you want to share this with your connected family.');
     const call=async(name,args)=>{check();const r=await context.client.rpc(name,args);check();if(r.error)throw r.error;return r.data;};
-    const row=await call('app9012_media_begin',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||'Voice recording.'+info.extension).slice(0,180),p_caption:options.caption,p_transcript:options.transcript});
+    const fallbackName=info.kind==='photo'?'Pasted picture.'+info.extension:info.kind==='video'?'Shared video.'+info.extension:'Voice recording.'+info.extension;
+    const row=await call('app9012_media_begin',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||fallbackName).slice(0,180),p_caption:options.caption,p_transcript:options.transcript});
     const expected=context.householdId+'/'+context.userId+'/'+draft.id;
     if(!row||row.storage_path!==expected)throw Error('The server did not confirm a safe upload location.');
     if(row.state==='shared')return {shared:true,id:draft.id};
@@ -93,7 +103,7 @@
     const stop=button('Stop recording',()=>recorder.stop(),'fm-stop');stop.hidden=true;
     const cancelRecording=button('Cancel recording',()=>recorder.cancel());cancelRecording.hidden=true;
     tools.append(choose,record,stop,cancelRecording,fileInput);
-    const hint=node('p','fm-hint','Photos up to 12 MB · Videos up to 45 MB · Audio up to 20 MB. Record up to 3 minutes. Photos are not resized. MOV playback depends on your phone; MP4 is best for sharing across devices.');
+    const hint=node('p','fm-hint','Choose a file or paste a copied picture here. Photos up to 12 MB · Videos up to 45 MB · Audio up to 20 MB. Record up to 3 minutes. Photos are not resized. MOV playback depends on your phone; MP4 is best for sharing across devices.');
     const retention=node('p','fm-hint','Test files are stored separately from your keepsake backup. Keep your originals. Removing a memory hides it from the family; the project owner must delete stored originals from Supabase to permanently erase them.');
     const editor=node('section','fm-editor');editor.hidden=true;
     const preview=node('div','fm-preview');
@@ -140,6 +150,15 @@
       }catch(e){fileInput.value='';setStatus(e.message);}
     }
     fileInput.addEventListener('change',()=>{if(!active||!enabled||busy){fileInput.value='';return;}const file=fileInput.files&&fileInput.files[0];if(file)setDraft(file);});consent.addEventListener('change',update);
+    view.addEventListener('paste',event=>{
+      if(!active||!enabled||busy||draft)return;
+      const target=event.target;
+      if(target&&typeof target.closest==='function'&&target.closest('textarea,input,[contenteditable]'))return;
+      const file=clipboardImage(event.clipboardData);
+      if(!file)return;
+      event.preventDefault();setDraft(file);
+      if(draft)setStatus('Picture pasted from your clipboard. Preview it before sharing.');
+    });
     async function submit(){
       if(!draft||busy||!enabled||!consent.checked||recordPhase!=='idle')return;
       busy=true;update();const start=epoch,ctx=context(),currentDraft=draft;
@@ -213,5 +232,5 @@
     root.addEventListener('beforeunload',e=>{if(draft||busy||recorder.busy()){e.preventDefault();e.returnValue='';}});
     root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset,hasPendingWork:()=>!!draft||busy||recorder.busy()};update();sync();
   }
-  return {BUCKET,TYPES,LIMITS,validateFile,sameAccount,createRecorder,shareDraft,mount};
+  return {BUCKET,TYPES,LIMITS,validateFile,clipboardImage,sameAccount,createRecorder,shareDraft,mount};
 }));
