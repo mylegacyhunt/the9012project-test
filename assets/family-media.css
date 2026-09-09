@@ -9,12 +9,14 @@
 .fm-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0;}
 #familyMediaRoot button,.fm-viewer button{min-height:44px;font-size:15px;padding:10px 15px;}
 #familyMediaRoot button:disabled{opacity:.5;cursor:not-allowed;}
-#familyMediaRoot button:focus-visible,#familyMediaRoot select:focus-visible,.fm-viewer button:focus-visible{outline:2px solid #efd18e;outline-offset:3px;}
+#familyMediaRoot button:focus-visible,#familyMediaRoot select:focus-visible,#familyMediaRoot input[type="date"]:focus-visible,.fm-viewer button:focus-visible{outline:2px solid #efd18e;outline-offset:3px;}
 #familyMediaRoot .fm-hint{font-size:14px;color:#c9b78f;line-height:1.5;margin:10px 0;}
 .fm-editor{background:#17110b;border:1px solid #96763d88;border-radius:12px;padding:18px;margin:20px 0;}
 #familyMediaRoot h3{font-size:21px;margin:0 0 12px;overflow-wrap:anywhere;}
 .fm-editor label{display:block;margin:12px 0 6px;}
 #familyMediaRoot textarea{box-sizing:border-box;width:100%;font-size:16px;resize:vertical;}
+#familyMediaRoot input[type="date"]{box-sizing:border-box;width:min(100%,240px);min-height:44px;padding:8px 10px;border:1px solid #96763d;background:#120e09;color:#e8dcc8;color-scheme:dark;font:16px system-ui,sans-serif;}
+html[data-theme="heirloom_light"] #familyMediaRoot input[type="date"]{border-color:#ae9873;background:#fffdf7;color:#594832;color-scheme:light;}
 #familyMediaRoot .fm-consent{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.5;}
 #familyMediaRoot .fm-consent input{width:20px;min-width:20px;height:20px;margin-top:2px;accent-color:#c9a84c;}
 .fm-preview{width:100%;overflow:hidden;}

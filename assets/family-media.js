@@ -29,6 +29,26 @@
     const files=data.files?Array.from(data.files):[];
     return files.find(file=>String(file&&file.type||'').toLowerCase().startsWith('image/'))||null;
   }
+  function mediaDetails(draft,manualDate,clock){
+    const info=validateFile(draft&&draft.file),now=Number.isFinite(clock)?clock:Date.now();
+    const allowed=['file_picker','clipboard','voice_recorder'];
+    const sourceType=allowed.includes(draft&&draft.sourceType)?draft.sourceType:'file_picker';
+    if(info.kind==='voice')return {capturedAt:null,capturedAtOffsetMinutes:null,sourceType,metadataStatus:'not_applicable',timezoneStatus:'not_applicable'};
+    const match=String(manualDate||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(match){
+      const local=new Date(Number(match[1]),Number(match[2])-1,Number(match[3]),12,0,0,0);
+      if(local.getFullYear()===Number(match[1])&&local.getMonth()===Number(match[2])-1&&local.getDate()===Number(match[3])&&local.getTime()<=now+86400000){
+        return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'manual',timezoneStatus:'device_local'};
+      }
+    }
+    const modified=Number(draft&&draft.file&&draft.file.lastModified);
+    if(sourceType==='file_picker'&&Number.isFinite(modified)&&modified>0&&modified<=now+86400000){
+      const local=new Date(modified);
+      return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'estimated',timezoneStatus:'unknown'};
+    }
+    const local=new Date(now);
+    return {capturedAt:local.toISOString(),capturedAtOffsetMinutes:-local.getTimezoneOffset(),sourceType,metadataStatus:'fallback',timezoneStatus:'device_local'};
+  }
   function sameAccount(a,b){return !!(a&&b&&a.userId&&a.householdId&&a.userId===b.userId&&a.householdId===b.householdId&&a.client===b.client);}
   function createRecorder(options){
     let active=null;const later=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -62,12 +82,12 @@
   }
   // Each network step checks the captured account; a late upload cannot publish for another user.
   async function shareDraft(options){
-    const {draft,snapshot:context}=options;const info=validateFile(draft.file);
+    const {draft,snapshot:context}=options;const info=validateFile(draft.file),details=mediaDetails(draft,options.captureDate);
     const check=()=>{if(!sameAccount(context,options.context())||options.cancelled())throw Error('The account or screen changed. Nothing further will be shared from this screen.');};
     check();if(!options.consent)throw Error('Confirm that you want to share this with your connected family.');
     const call=async(name,args)=>{check();const r=await context.client.rpc(name,args);check();if(r.error)throw r.error;return r.data;};
     const fallbackName=info.kind==='photo'?'Pasted picture.'+info.extension:info.kind==='video'?'Shared video.'+info.extension:'Voice recording.'+info.extension;
-    const row=await call('app9012_media_begin',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||fallbackName).slice(0,180),p_caption:options.caption,p_transcript:options.transcript});
+    const row=await call('app9012_media_begin_v2',{p_household_id:context.householdId,p_id:draft.id,p_kind:info.kind,p_mime:info.mime,p_bytes:draft.file.size,p_filename:(draft.file.name||fallbackName).slice(0,180),p_caption:options.caption,p_transcript:options.transcript,p_captured_at:details.capturedAt,p_captured_at_offset_minutes:details.capturedAtOffsetMinutes,p_source_type:details.sourceType,p_metadata_status:details.metadataStatus,p_timezone_status:details.timezoneStatus});
     const expected=context.householdId+'/'+context.userId+'/'+draft.id;
     if(!row||row.storage_path!==expected)throw Error('The server did not confirm a safe upload location.');
     if(row.state==='shared')return {shared:true,id:draft.id};
@@ -108,10 +128,12 @@
     const editor=node('section','fm-editor');editor.hidden=true;
     const preview=node('div','fm-preview');
     const captionLabel=node('label','','Caption (optional)');const caption=node('textarea');caption.id='familyMediaCaption';caption.maxLength=1000;caption.rows=2;captionLabel.htmlFor=caption.id;
+    const captureLabel=node('label','','When was this taken? (optional)');const captureDate=node('input');captureDate.type='date';captureDate.id='familyMediaCaptureDate';captureLabel.htmlFor=captureDate.id;
+    const captureNote=node('p','fm-hint','We use the device file date when available. You can correct it here. Location information is not copied.');let captureDateTouched=false;
     const transcriptLabel=node('label','','Written transcript (optional — type or paste)');const transcript=node('textarea');transcript.id='familyMediaTranscript';transcript.maxLength=12000;transcript.rows=4;transcriptLabel.htmlFor=transcript.id;
     const consentLabel=node('label','fm-consent');const consent=node('input');consent.type='checkbox';consent.id='familyMediaConsent';consentLabel.append(consent,doc.createTextNode(' Share this file and its text with my connected family.'));
     const editorActions=node('div','fm-tools');const share=button('Share with my family',submit,'fm-share');const discard=button('Discard draft',clearDraft);editorActions.append(share,discard);
-    editor.append(node('h3','','Preview before sharing'),preview,captionLabel,caption,transcriptLabel,transcript,consentLabel,editorActions,node('p','fm-hint','Nothing uploads until you press Share. Leaving this album clears an unshared draft from this screen. Only share files you want your connected family to keep.'));
+    editor.append(node('h3','','Preview before sharing'),preview,captionLabel,caption,captureLabel,captureDate,captureNote,transcriptLabel,transcript,consentLabel,editorActions,node('p','fm-hint','Nothing uploads until you press Share. Leaving this album clears an unshared draft from this screen. Only share files you want your connected family to keep.'));
     const filterRow=node('div','fm-tools');const filterLabel=node('label','','Show');const select=node('select');select.id='familyMediaFilter';filterLabel.htmlFor=select.id;
     for(const [value,label] of [['all','All memories'],['photo','Pictures'],['video','Videos'],['voice','Voices']]){const o=node('option','',label);o.value=value;select.append(o);}
     select.addEventListener('change',()=>{filter=select.value;drawRows();});
@@ -131,39 +153,42 @@
       stop.hidden=!['recording','stopping'].includes(recordPhase);stop.disabled=recordPhase==='stopping';
       cancelRecording.hidden=recordPhase==='idle';
       share.disabled=!enabled||busy||!draft||!consent.checked||recordPhase!=='idle';
-      discard.disabled=busy;caption.disabled=transcript.disabled=consent.disabled=busy;
+      discard.disabled=busy;caption.disabled=captureDate.disabled=transcript.disabled=consent.disabled=busy;
       refresh.disabled=!enabled||busy||loading;more.disabled=refresh.disabled;
     }
     const recorder=createRecorder({Recorder:root.MediaRecorder,Blob:root.Blob,getUserMedia:root.isSecureContext&&root.navigator.mediaDevices?.getUserMedia?opts=>root.navigator.mediaDevices.getUserMedia(opts):null,
-      onState(phase,message){recordPhase=phase;setStatus(message);update();},onReady(blob){setDraft(blob);}});
+      onState(phase,message){recordPhase=phase;setStatus(message);update();},onReady(blob){setDraft(blob,'voice_recorder');}});
     function revokeDraft(){if(draftURL){root.URL.revokeObjectURL(draftURL);draftURL=null;}preview.querySelectorAll('audio,video').forEach(p=>{p.pause();p.removeAttribute('src');p.load();});preview.replaceChildren();}
-    function clearDraft(){if(busy)return;revokeDraft();draft=null;fileInput.value='';caption.value=transcript.value='';consent.checked=false;editor.hidden=true;update();}
+    function clearDraft(){if(busy)return;revokeDraft();draft=null;fileInput.value='';caption.value=transcript.value='';captureDate.value='';captureDateTouched=false;consent.checked=false;editor.hidden=true;update();}
     function player(file,url,label){
       const info=validateFile(file);const p=node(info.kind==='photo'?'img':info.kind==='video'?'video':'audio');
       if(info.kind==='photo')p.alt=label||'Family picture';else{p.controls=true;p.preload='metadata';if(info.kind==='video')p.playsInline=true;}
       p.src=url;p.addEventListener('error',()=>setStatus('This browser cannot play this file. Try an MP4 video, JPG photo, or MP3/M4A recording.'));return p;
     }
-    function setDraft(file){
+    function setDraft(file,sourceType){
       if(!active||!enabled||busy)return;
-      try{const info=validateFile(file);clearDraft();draft={file,id:root.crypto.randomUUID(),uploaded:false};draftURL=root.URL.createObjectURL(file);
-        preview.append(player(file,draftURL,'Your unshared picture'));transcript.hidden=transcriptLabel.hidden=info.kind!=='voice';editor.hidden=false;setStatus('Ready to preview. Nothing has been shared.');update();
+      try{const info=validateFile(file);clearDraft();draft={file,id:root.crypto.randomUUID(),uploaded:false,sourceType:sourceType||'file_picker'};draftURL=root.URL.createObjectURL(file);
+        preview.append(player(file,draftURL,'Your unshared picture'));transcript.hidden=transcriptLabel.hidden=info.kind!=='voice';captureDate.hidden=captureLabel.hidden=captureNote.hidden=info.kind==='voice';
+        const today=new Date();captureDate.max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+        if(info.kind!=='voice'&&draft.sourceType==='file_picker'&&Number.isFinite(Number(file.lastModified))&&Number(file.lastModified)>0){const d=new Date(Number(file.lastModified));captureDate.value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+        editor.hidden=false;setStatus('Ready to preview. Nothing has been shared.');update();
       }catch(e){fileInput.value='';setStatus(e.message);}
     }
-    fileInput.addEventListener('change',()=>{if(!active||!enabled||busy){fileInput.value='';return;}const file=fileInput.files&&fileInput.files[0];if(file)setDraft(file);});consent.addEventListener('change',update);
+    fileInput.addEventListener('change',()=>{if(!active||!enabled||busy){fileInput.value='';return;}const file=fileInput.files&&fileInput.files[0];if(file)setDraft(file,'file_picker');});captureDate.addEventListener('change',()=>{captureDateTouched=true;});consent.addEventListener('change',update);
     view.addEventListener('paste',event=>{
       if(!active||!enabled||busy||draft)return;
       const target=event.target;
       if(target&&typeof target.closest==='function'&&target.closest('textarea,input,[contenteditable]'))return;
       const file=clipboardImage(event.clipboardData);
       if(!file)return;
-      event.preventDefault();setDraft(file);
+      event.preventDefault();setDraft(file,'clipboard');
       if(draft)setStatus('Picture pasted from your clipboard. Preview it before sharing.');
     });
     async function submit(){
       if(!draft||busy||!enabled||!consent.checked||recordPhase!=='idle')return;
       busy=true;update();const start=epoch,ctx=context(),currentDraft=draft;
       try{
-        await shareDraft({draft:currentDraft,snapshot:ctx,context,consent:consent.checked,caption:caption.value.trim(),transcript:validateFile(currentDraft.file).kind==='voice'?transcript.value.trim():'',cancelled:()=>epoch!==start,status:setStatus});
+        await shareDraft({draft:currentDraft,snapshot:ctx,context,consent:consent.checked,caption:caption.value.trim(),captureDate:captureDateTouched?captureDate.value:'',transcript:validateFile(currentDraft.file).kind==='voice'?transcript.value.trim():'',cancelled:()=>epoch!==start,status:setStatus});
         if(start!==epoch)return;busy=false;clearDraft();setStatus('Shared with your connected family.');await load(true);
       }catch(e){if(start!==epoch)return;setStatus('Sharing was not confirmed. Your draft is still here. Check your connection and press Share to retry.');}
       finally{if(start===epoch){busy=false;update();}}
@@ -176,7 +201,7 @@
         if(start!==epoch||!sameAccount(ctx,context()))return;
         if(access.error||!access.data?.enabled||access.data.user_id!==ctx.userId||access.data.household_id!==ctx.householdId)throw Error('not_enabled');
         enabled=true;if(reset){rows=[];nextPage=0;}
-        const r=await ctx.client.from('app9012_family_media').select('id,storage_path,original_filename,media_kind,mime_type,byte_size,caption,transcript,uploader_name,uploader_user_id,shared_at').eq('household_id',ctx.householdId).eq('state','shared').order('shared_at',{ascending:false}).order('id',{ascending:false}).range(nextPage,nextPage+23);
+        const r=await ctx.client.from('app9012_family_media').select('id,storage_path,original_filename,media_kind,mime_type,byte_size,caption,transcript,uploader_name,uploader_user_id,captured_at,metadata_status,shared_at').eq('household_id',ctx.householdId).eq('state','shared').order('captured_at',{ascending:false,nullsFirst:false}).order('shared_at',{ascending:false}).order('id',{ascending:false}).range(nextPage,nextPage+23);
         if(start!==epoch||!sameAccount(ctx,context()))return;if(r.error)throw r.error;
         const page=r.data||[];rows=[...new Map(rows.concat(page).map(r=>[r.id,r])).values()];nextPage+=page.length;more.hidden=page.length<24;
         drawRows();if(!draft&&!recorder.busy())setStatus('Private family test — only your connected household can open these files.');
@@ -188,7 +213,8 @@
       if(!shown.length){gallery.append(node('p','fm-empty',rows.length?'No '+filter+' memories in the loaded items.':'Your family’s pictures, videos and voices will gather here.'));return;}
       for(const row of shown){
         const card=node('article','fm-card');const kind={photo:'Picture',video:'Video',voice:'Voice recording'}[row.media_kind]||'Memory';
-        card.append(node('span','fm-kind',kind),node('h3','',row.caption||row.original_filename||kind),node('p','fm-meta',(row.uploader_name||'Family member')+' · '+new Date(row.shared_at).toLocaleDateString()));
+        const memoryDate=row.captured_at||row.shared_at,dateNote=row.metadata_status==='manual'?' · date corrected':row.metadata_status==='estimated'||row.metadata_status==='fallback'?' · date estimated':'';
+        card.append(node('span','fm-kind',kind),node('h3','',row.caption||row.original_filename||kind),node('p','fm-meta',(row.uploader_name||'Family member')+' · '+new Date(memoryDate).toLocaleDateString()+dateNote));
         const open=button(row.media_kind==='photo'?'Open picture':row.media_kind==='video'?'Open video':'Listen to voice',()=>openMedia(row,open));card.append(open);
         if(row.transcript){const details=node('details');details.append(node('summary','','Read transcript'),node('p','fm-transcript',row.transcript));card.append(details);}
         if(row.uploader_user_id===context()?.userId)card.append(button('Remove from family',()=>hide(row),'ghost fm-remove'));
@@ -232,5 +258,5 @@
     root.addEventListener('beforeunload',e=>{if(draft||busy||recorder.busy()){e.preventDefault();e.returnValue='';}});
     root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset,hasPendingWork:()=>!!draft||busy||recorder.busy()};update();sync();
   }
-  return {BUCKET,TYPES,LIMITS,validateFile,clipboardImage,sameAccount,createRecorder,shareDraft,mount};
+  return {BUCKET,TYPES,LIMITS,validateFile,clipboardImage,mediaDetails,sameAccount,createRecorder,shareDraft,mount};
 }));
