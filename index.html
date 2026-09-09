@@ -1532,8 +1532,21 @@ function queueCloudSave(){
 }
 async function clearLocal9012(){
   let ok=true;
-  try{await Store.set('people',[]);await Store.set('releasedPeople',[]);}catch(e){ok=false;}
-  try{const rm=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('9012_')===0)rm.push(k);}rm.forEach(k=>localStorage.removeItem(k));}catch(e){ok=false;}
+  if(window.storage&&window.storage.set){
+    for(const k of ['people','releasedPeople']){
+      try{
+        await window.storage.set(k,JSON.stringify([]));
+        if(window.storage.get){const r=await window.storage.get(k),v=r&&r.value!=null?JSON.parse(r.value):null;if(!Array.isArray(v)||v.length)ok=false;}
+      }catch(e){ok=false;}
+    }
+  }
+  for(const store of [localStorage,sessionStorage]){
+    try{
+      const rm=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))rm.push(k);}
+      rm.forEach(k=>store.removeItem(k));
+      for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))ok=false;}
+    }catch(e){ok=false;}
+  }
   try{for(const k in mem)delete mem[k];}catch(e){ok=false;}
   return ok;
 }
@@ -3395,7 +3408,7 @@ async function askEraseAll(){
 }
 function checkErase(){const wrap=el('eraseTransferWrap'),successor=el('eraseSuccessor');const transferOk=!wrap||wrap.style.display==='none'||!!successor.value;const ok=(el('eraseGate').value.trim().toUpperCase()==='DELETE MY ACCOUNT')&&transferOk;const b=el('eraseGo');b.disabled=!ok;b.style.opacity=ok?'1':'.4';}
 function withEraseTimeout(promise,ms){return new Promise(function(resolve,reject){const timer=setTimeout(function(){const e=new Error('The cloud did not confirm in time.');e.code='ERASE_TIMEOUT';reject(e);},ms);Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(err){clearTimeout(timer);reject(err);});});}
-function showEraseFailure(err){const box=el('eraseError');const code=err&&err.code;let msg='Your account was not confirmed deleted. Nothing on this device was cleared. Please try again.';if(!currentSession)msg='Please sign in again before deleting your account.';else if(code==='ERASE_TIMEOUT')msg='The server did not confirm in time. Keep this page open, check your connection, and try again.';else if(code==='eligible_successor_required'||code==='household_owner_transfer_required')msg='A household owner must transfer ownership to a connected adult before deleting their account.';else if(code==='parent_managed_shelf')msg='This parent-managed shelf must be released before its account can be deleted.';else if(code==='DEVICE_CLEANUP_FAILED')msg='Your cloud account was deleted, but this browser could not clear every cached copy. Close this page and clear this site\u2019s browser data.';else if(typeof navigator!=='undefined'&&navigator.onLine===false)msg='You appear to be offline. Reconnect and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
+function showEraseFailure(err){const box=el('eraseError');const code=err&&err.code;let msg='Your account was not confirmed deleted. Nothing on this device was cleared. Please try again.';if(code==='DEVICE_CLEANUP_FAILED')msg='Your cloud account was deleted, but this browser could not clear every cached copy. Close this page and clear this site\u2019s browser data.';else if(!currentSession)msg='Please sign in again before deleting your account.';else if(code==='ERASE_TIMEOUT')msg='The server did not confirm in time. Keep this page open, check your connection, and try again.';else if(code==='eligible_successor_required'||code==='household_owner_transfer_required')msg='A household owner must transfer ownership to a connected adult before deleting their account.';else if(code==='parent_managed_shelf')msg='This parent-managed shelf must be released before its account can be deleted.';else if(typeof navigator!=='undefined'&&navigator.onLine===false)msg='You appear to be offline. Reconnect and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
 async function eraseCloudCopy(successorPersonId){
  if(!supabaseClient||!currentSession||!currentSession.user)throw Object.assign(new Error('authentication_required'),{code:'authentication_required'});
  const result=await supabaseClient.functions.invoke('delete-account',{body:{confirmation:'DELETE MY ACCOUNT',successorPersonId:successorPersonId||undefined}});
@@ -3410,12 +3423,15 @@ async function doEraseAll(){
  try{
    await withEraseTimeout(eraseCloudCopy(select&&select.value),60000);
  }catch(e){console.error('90:12 account deletion failed:',e);accountDeletionBusy=false;showEraseFailure(e);if(g)g.disabled=false;if(select)select.disabled=false;if(b){b.disabled=false;b.style.opacity='1';b.textContent='Try deleting again';}return false;}
+ clearTimeout(secretDraftTimer);secretDraftTimer=null;clearSecretResumeMarker();
+ const draft=el('prayerBody');if(draft)draft.value='';
  try{await supabaseClient.auth.signOut({scope:'local'});}catch(e){}
  const cleared=await clearLocal9012();
  people=[];releasedPeople=[];cur=0;activePersonId=null;householdRole=null;householdId=null;
- currentSession=null;cloudMode='local';accountDeletionBusy=false;
- if(!cleared){showEraseFailure(Object.assign(new Error('device_cleanup_failed'),{code:'DEVICE_CLEANUP_FAILED'}));return false;}
- closeModal('eraseModal');routeHome();showToast('<span>Your personal account was permanently deleted. 90:12 and your family\u2019s accounts remain.</span>');
+ currentSession=null;cloudMode='local';
+ if(!cleared){document.body.innerHTML='<main style="max-width:620px;margin:12vh auto;padding:28px;font:18px/1.55 Georgia,serif;color:#f0dfb8;background:#1f2b25;border-radius:18px"><h1 style="font-size:28px">Your personal account was deleted</h1><p>Your cloud account is permanently deleted, but this browser could not clear every cached copy. Close this tab and clear this site\u2019s browser data before using this device again.</p></main>';return false;}
+ alert('Your personal account was permanently deleted. 90:12 and your family\u2019s accounts remain.');
+ const cleanUrl=new URL(location.href);cleanUrl.search='';cleanUrl.hash='';location.replace(cleanUrl.href);
  return true;
 }
 
@@ -3712,6 +3728,7 @@ function secretDraftKey(){
 function setSecretDraftStatus(msg){var x=el('secretDraftStatus');if(x)x.textContent=msg||'';}
 function writeSecretDraftNow(){
  clearTimeout(secretDraftTimer);secretDraftTimer=null;
+ if(accountDeletionBusy)return;
  const t=el('prayerBody');if(!t)return;
  const body=t.value||'';
  try{
@@ -3725,6 +3742,7 @@ function writeSecretDraftNow(){
  }catch(e){setSecretDraftStatus('Draft protection unavailable on this device');}
 }
 function queueSecretDraftSave(){
+ if(accountDeletionBusy)return;
  setSecretDraftStatus('Saving draft\u2026');
  clearTimeout(secretDraftTimer);
  secretDraftTimer=setTimeout(writeSecretDraftNow,350);
@@ -3743,6 +3761,7 @@ function secretResumeKey(){
  return '9012_secret_resume_'+uid+'_'+pid;
 }
 function markSecretForResume(){
+ if(accountDeletionBusy)return;
  if(activeViewId()!=='viewSecret')return;
  try{localStorage.setItem(secretResumeKey(),JSON.stringify({view:'viewSecret',at:Date.now()}));}catch(e){}
 }
@@ -3775,10 +3794,11 @@ function restoreSecretDraft(){
  t.value='';t.style.height='340px';setSecretDraftStatus('');return false;
 }
 document.addEventListener('visibilitychange',function(){
+ if(accountDeletionBusy)return;
  if(document.visibilityState==='hidden'){writeSecretDraftNow();markSecretForResume();return;}
  if(document.visibilityState==='visible'&&activeViewId()==='viewSecret'){clearSecretResumeMarker();setTimeout(function(){var t=el('prayerBody');if(t)t.focus();},60);}
 });
-window.addEventListener('pagehide',function(){writeSecretDraftNow();markSecretForResume();});
+window.addEventListener('pagehide',function(){if(accountDeletionBusy)return;writeSecretDraftNow();markSecretForResume();});
 
 function openSecretRoom(){if(!requireSecretUnlock(''))return;armJournalRelock();el('secretVerse').innerHTML=SVERSES[Math.floor(Math.random()*SVERSES.length)];el('pageDate').textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});var _pb=el('prayerBody');if(_pb){restoreSecretDraft();}applyHand(currentHand());el('aiButtons').style.display='none';el('soloBtn').classList.add('active');el('compBtn').classList.remove('active');el('aiOut').style.display='none';el('promptTog').checked=false;var _pr0=document.querySelector('.promptrow');if(_pr0)_pr0.style.display='none';renderPrayers();renderRemembrance();updateJournalPassControls();markTabs('');show('viewSecret');if(_scrollRemembrance){_scrollRemembrance=false;setTimeout(function(){var r=el('remembrance');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},350);}scrollToTarget();maybeCoach('secret');}
 function leaveSecret(){clearSecretResumeMarker();show('viewJar');markTabs('viewJar');}
@@ -4004,6 +4024,7 @@ window.app9012KeepsakeBridge={
    return peopleOk&&releasedOk;
  }
  function flushPendingSaves(){
+   if(typeof accountDeletionBusy!=='undefined'&&accountDeletionBusy)return;
    saveLatestStateToDeviceNow();
    if(cloudSaveTimer&&accountSaveAvailable()){
      clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSaveState='queued';renderSaveStatus();
@@ -4013,6 +4034,7 @@ window.app9012KeepsakeBridge={
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushPendingSaves();});
  window.addEventListener('pagehide',flushPendingSaves);
  window.addEventListener('beforeunload',function(event){
+   if(typeof accountDeletionBusy!=='undefined'&&accountDeletionBusy)return;
    if(localSaveState!=='failed')return;
    event.preventDefault();event.returnValue='';
  });
