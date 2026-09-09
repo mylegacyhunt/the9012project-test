@@ -821,7 +821,7 @@ html[data-theme="heirloom_light"] footer{color:#675b49;}html[data-theme="heirloo
       <article class="themecard heirloom available" data-theme="heirloom_light" onclick="chooseThemeCard('heirloom_light')"><span class="themebadge">Available</span><div class="themepreview heirloom"><div class="mocktitle">Heirloom Light<br><small>Cream · sage · terracotta · botanicals</small></div></div><h3>Heirloom Light</h3><p>A softer family-keepsake setting with cream, linen, sage, terracotta, and botanicals.</p></article>
     </div>
     <div class="themeactions"><button class="ghost" id="themeBackBtn" onclick="closeThemeChoice()" style="display:none">Cancel</button><button id="themeContinueBtn" onclick="continueFromThemeChoice()">Continue with Lantern Heritage</button></div>
-    <p class="themestatus" id="themeStatus" role="status" aria-live="polite">Your appearance is saved on this device. Your memories are not changed.</p>
+    <p class="themestatus" id="themeStatus" role="status" aria-live="polite">When you are signed in, your appearance follows your account on every device. Your memories are not changed.</p>
     <details class="phoneiconhelp">
       <summary>Add 90:12 to your phone&rsquo;s Home Screen</summary>
       <div class="phoneiconexamples">
@@ -2051,6 +2051,7 @@ async function saveNewPassword(){
  if(r.error){say('We could not save that password yet. Please try again.');console.error('90:12 password setup failed:',r.error);return;}
  try{localStorage.removeItem('9012_pending_password_email');}catch(e){}
  el('newPassword').value='';el('confirmPassword').value='';
+ await loadCloudThemeForSession();
  await loadCloudForSession();
  routeHome();
 }
@@ -2077,6 +2078,7 @@ async function saveNewPassword(){
         currentSession=login.data.session;
          if(passwordRecovery.active){resumePasswordRecovery(currentSession);return;}
         if(status)status.textContent='Opening your shelf…';
+        await loadCloudThemeForSession();
         await loadCloudForSession();
         routeHome();
       }catch(err){
@@ -3598,7 +3600,9 @@ function saveExpand(){if(!_expand)return;var p=P();var item=(_expand.kind==='pra
 
 /* Themes */
 const VISUAL_THEME_KEY='9012_visual_theme';
+const PENDING_THEME_KEY_PREFIX='9012_pending_theme_';
 let themeChoiceOnboarding=false,selectedThemeKey='lantern_heritage',themeCatalog=null,themeSaving=false,themeReturnView='viewJar';
+let cloudThemeLoadPromise=null,cloudThemeLoadOwnerId=null,cloudThemeLastCheckedAt=0;
 function knownThemeKey(key){return Object.prototype.hasOwnProperty.call(THEME_ASSETS,key)?key:'lantern_heritage';}
 function storedThemeKey(){try{return knownThemeKey(localStorage.getItem(VISUAL_THEME_KEY)||(window.app9012Icons&&window.app9012Icons.getTheme())||'lantern_heritage');}catch(e){return 'lantern_heritage';}}
 function applyAppTheme(key,persist){
@@ -3630,15 +3634,46 @@ function applyAppTheme(key,persist){
  if(window.app9012Icons)window.app9012Icons.setTheme(currentThemeKey);
  return currentThemeKey;
 }
+function pendingThemeKey(userId){return PENDING_THEME_KEY_PREFIX+String(userId||'');}
+function readPendingTheme(userId){try{const value=localStorage.getItem(pendingThemeKey(userId));return value&&Object.prototype.hasOwnProperty.call(THEME_ASSETS,value)?value:null;}catch(e){return null;}}
+function savePendingTheme(userId,key){try{localStorage.setItem(pendingThemeKey(userId),knownThemeKey(key));return true;}catch(e){return false;}}
+function clearPendingTheme(userId){try{localStorage.removeItem(pendingThemeKey(userId));}catch(e){}}
+function sameThemeSession(session){return !!(session&&session.user&&currentSession&&currentSession.user&&currentSession.user.id===session.user.id);}
+async function syncThemePreference(key,session){
+ if(!supabaseClient||!sameThemeSession(session))return false;
+ const r=await supabaseClient.rpc('app9012_set_my_theme',{p_theme_key:knownThemeKey(key)});
+ if(r.error)throw r.error;
+ if(!sameThemeSession(session)||!r.data||r.data.saved!==true||r.data.theme_key!==knownThemeKey(key))throw Error('Theme preference was not confirmed.');
+ clearPendingTheme(session.user.id);return true;
+}
+async function loadCloudThemeForSessionNow(session){
+ if(!supabaseClient||!sameThemeSession(session))return null;
+ const userId=session.user.id,pending=readPendingTheme(userId);
+ if(pending){
+  try{if(await syncThemePreference(pending,session)){if(sameThemeSession(session))applyAppTheme(pending,true);cloudThemeLastCheckedAt=Date.now();return pending;}}
+  catch(e){console.warn('90:12 pending theme preference not synced',e);if(sameThemeSession(session))applyAppTheme(pending,true);return pending;}
+ }
+ try{
+  const r=await supabaseClient.rpc('app9012_get_my_theme',{});if(r.error)throw r.error;
+  if(!sameThemeSession(session))return null;
+  const key=knownThemeKey(r.data&&r.data.theme_key);applyAppTheme(key,true);cloudThemeLastCheckedAt=Date.now();return key;
+ }catch(e){console.warn('90:12 account theme unavailable',e);return null;}
+}
+async function loadCloudThemeForSession(){
+ const session=currentSession,userId=session&&session.user&&session.user.id;if(!userId)return null;
+ if(cloudThemeLoadPromise&&cloudThemeLoadOwnerId===userId)return cloudThemeLoadPromise;
+ cloudThemeLoadOwnerId=userId;cloudThemeLoadPromise=loadCloudThemeForSessionNow(session);
+ try{return await cloudThemeLoadPromise;}finally{if(cloudThemeLoadOwnerId===userId){cloudThemeLoadPromise=null;cloudThemeLoadOwnerId=null;}}
+}
+function refreshCloudThemeWhenActive(force){if(!currentSession)return;if(!force&&Date.now()-cloudThemeLastCheckedAt<5000)return;loadCloudThemeForSession();}
 async function fetchThemeCatalog(){if(!supabaseClient||!currentSession)return null;try{const r=await supabaseClient.rpc('app9012_get_theme_catalog',{});if(r.error)throw r.error;return Array.isArray(r.data)?r.data:[];}catch(e){console.warn('90:12 theme catalog unavailable',e);return null;}}
 async function openThemeChoice(onboarding){
  if(activeViewId()!=='viewThemeChoice')themeReturnView=activeViewId()||'viewJar';
  themeChoiceOnboarding=!!onboarding;themeCatalog=null;
  if(el('themeBackBtn'))el('themeBackBtn').style.display=themeChoiceOnboarding?'none':'inline-block';
  chooseThemeCard(currentThemeKey);show('viewThemeChoice');
- el('themeStatus').textContent='Your appearance is saved on this device. Your memories are not changed.';
- // Both built-in visual sets can be used locally. The server catalog still
- // controls which preference may be synced; do not bypass its release status.
+ el('themeStatus').textContent=currentSession?'Your appearance follows your account on every device. Your memories are not changed.':'Sign in to use this appearance on every device. Your memories are not changed.';
+ // The catalog supplies account-level availability labels and descriptions.
  const session=currentSession,catalog=await fetchThemeCatalog();
  if(currentSession===session)themeCatalog=catalog;
 }
@@ -3650,14 +3685,14 @@ function chooseThemeCard(key){
 async function continueFromThemeChoice(){
  if(themeSaving)return;themeSaving=true;el('themeContinueBtn').disabled=true;
  const key=knownThemeKey(selectedThemeKey),session=currentSession;
- let syncNote='Appearance saved on this device.';
+ let syncNote=session?'Appearance saved to your account for every device.':'Appearance saved on this device. Sign in to use it on every device.';
  try{
   applyAppTheme(key,true);
-  const released=themeCatalog&&themeCatalog.some(function(t){return t.theme_key===key&&t.status==='available';});
-  if(supabaseClient&&session&&released){
-   try{const r=await supabaseClient.rpc('app9012_set_my_theme',{p_theme_key:key});if(r.error)throw r.error;}
-   catch(e){syncNote='Appearance applied on this device. Cloud preference could not be saved; your memories are unchanged.';console.warn('90:12 theme preference not synced',e);}
-  }else if(session){syncNote='Appearance applied on this device. Cloud theme syncing is not enabled or could not be checked.';}
+  if(supabaseClient&&session){
+   savePendingTheme(session.user.id,key);
+   try{if(!await syncThemePreference(key,session))throw Error('Account changed before theme confirmation.');}
+   catch(e){syncNote='Appearance saved on this device and will sync to your account when the connection returns.';console.warn('90:12 theme preference not synced',e);}
+  }
   if(currentSession!==session)return;
   if(themeChoiceOnboarding){themeChoiceOnboarding=false;if(isGuidedExperience(P()))openFirstJourney();else openPerson(0);}else closeThemeChoice();
   showToast('<span>'+esc(syncNote)+'</span>');
@@ -3668,6 +3703,9 @@ function closeThemeChoice(){if(themeChoiceOnboarding)return;show(themeReturnView
 applyAppTheme(storedThemeKey(),false);
 document.querySelectorAll('.themecard').forEach(function(card){card.setAttribute('role','button');card.tabIndex=0;card.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseThemeCard(card.getAttribute('data-theme'));}});});
 window.addEventListener('storage',function(e){if(e.key===VISUAL_THEME_KEY||e.key===null)applyAppTheme(storedThemeKey(),false);});
+window.addEventListener('online',function(){refreshCloudThemeWhenActive(true);});
+window.addEventListener('focus',function(){refreshCloudThemeWhenActive(false);});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshCloudThemeWhenActive(false);});
 
 /* Family Photo Album */
 // FAMILY MEDIA BRIDGE
@@ -3870,6 +3908,7 @@ if(supabaseClient){
      }
      if(event==='SIGNED_IN'){
        bootReady=true;
+       await loadCloudThemeForSession();
        if(isFamilyInviteReturn()){
          routeHome();
          await beginExistingFamilyMergeReturn();
@@ -3893,6 +3932,7 @@ if(supabaseClient){
   if(resumePasswordRecovery(currentSession)){bootReady=true;armAppHistory();return;}
   // A family invitation return must be handled as an invitation/merge first.
  // Do not run ordinary household bootstrap before the recipient reviews the merge.
+ if(currentSession)await loadCloudThemeForSession();
  if(currentSession&&!isFamilyInviteReturn())await loadCloudForSession();
  const now=Date.now();people=normalizePeople(people);people.forEach(p=>{if(p.released)p.released=p.released.filter(r=>r.purgeAt>now);});releasedPeople=releasedPeople.filter(r=>r.purgeAt>now);
  await writeLocalCache();

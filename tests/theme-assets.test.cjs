@@ -31,12 +31,12 @@ function fixture(options={}){
  const cards=['lantern_heritage','heirloom_light'].map(key=>{const e=element();e.setAttribute('data-theme',key);e.badge=element();e.querySelector=()=>e.badge;return e;});
  const nodes={themeContinueBtn:element(),themeBackBtn:element(),themeStatus:element(),emPalaceIcon:element(),emStonesIcon:element()};
  const splash=element(),heading=element(),strip={flame:null,querySelector(){return this.flame&&!this.flame.removed?this.flame:null;},appendChild(f){this.flame=f;}};
- const doc={documentElement:element(),createElement:()=>element(),querySelectorAll(s){return s==='.scene .frame'?frames:s==='img'?images:s==='.famstrip'?[strip]:s==='.themecard'?cards:[];},querySelector(s){return s==='#splashLogo img'?splash:s==='#view12Stones .stoneshead img'?heading:null;}};
+ const doc={visibilityState:'visible',documentElement:element(),createElement:()=>element(),addEventListener:(k,f)=>events['document:'+k]=f,querySelectorAll(s){return s==='.scene .frame'?frames:s==='img'?images:s==='.famstrip'?[strip]:s==='.themecard'?cards:[];},querySelector(s){return s==='#splashLogo img'?splash:s==='#view12Stones .stoneshead img'?heading:null;}};
  const account={user:{id:'fixture-account'}},calls=[],toasts=[];let active='viewJar';
- const env={document:doc,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
+ const env={document:doc,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   window:{app9012Icons:{getTheme:()=> 'lantern_heritage',setTheme:key=>{env.icon=key;}},addEventListener:(k,f)=>events[k]=f},
   console:{warn(){}},el:id=>nodes[id]||null,currentSession:options.signedOut?null:account,
-  supabaseClient:{rpc:async(name,args)=>{calls.push({name,args});if(options.rpc)return options.rpc(name,args);return {data:options.catalog||[],error:null};}},
+  supabaseClient:{rpc:async(name,args)=>{calls.push({name,args});if(options.rpc)return options.rpc(name,args);if(name==='app9012_get_theme_catalog')return {data:options.catalog||[],error:null};if(name==='app9012_get_my_theme')return {data:{theme_key:options.cloudTheme||'lantern_heritage'},error:null};if(name==='app9012_set_my_theme')return {data:{saved:true,theme_key:args.p_theme_key},error:null};throw Error('Unexpected RPC: '+name);}},
   activeViewId:()=>active,show:v=>active=v,markTabs(){},showToast:s=>toasts.push(s),esc:s=>s,P:()=>({id:'sample'}),
   isGuidedExperience:()=>false,openPerson:()=>{throw Error('Theme must not reopen or save a person');},openFirstJourney(){},
   savePeople:()=>{throw Error('Theme must not change memories');}};
@@ -113,19 +113,35 @@ test('saved theme loads, invalid keys fall back, and cross-tab storage refresh s
  f.storage.set('9012_visual_theme','lantern_heritage');f.events.storage({key:'9012_visual_theme'});assert.equal(f.frames[0].src,assets.lantern_heritage.scenes[0]);
  assert.equal(f.run("applyAppTheme('not-a-theme')"),'lantern_heritage');
 });
-test('unreleased server catalog never receives a theme preference write',async()=>{
- const f=fixture({catalog:[{theme_key:'heirloom_light',status:'coming_soon'}]});await f.run('openThemeChoice(false)');f.run("chooseThemeCard('heirloom_light')");await f.run('continueFromThemeChoice()');
- assert(!f.calls.some(c=>c.name==='app9012_set_my_theme'));assert(f.toasts[0].includes('on this device'));assert.equal(f.view(),'viewJar');
+test('a signed-in choice is saved to the account for every device',async()=>{
+ const f=fixture({catalog:[{theme_key:'heirloom_light',status:'available'}]});await f.run('openThemeChoice(false)');f.run("chooseThemeCard('heirloom_light')");await f.run('continueFromThemeChoice()');
+ const save=f.calls.find(c=>c.name==='app9012_set_my_theme');assert.equal(save.args.p_theme_key,'heirloom_light');
+ assert.equal(f.storage.get('9012_visual_theme'),'heirloom_light');assert.equal(f.storage.has('9012_pending_theme_fixture-account'),false);
+ assert(f.toasts[0].includes('every device'));assert.equal(f.view(),'viewJar');
 });
-test('cloud failure reports device-only application and always unlocks the continue button',async()=>{
+test('an offline choice stays visible and remains pending for a later retry',async()=>{
  const f=fixture({rpc:async name=>name==='app9012_get_theme_catalog'?{data:[{theme_key:'heirloom_light',status:'available'}]}:{error:Error('offline')}});
  await f.run('openThemeChoice(false)');f.run("chooseThemeCard('heirloom_light')");await f.run('continueFromThemeChoice()');
- assert(f.toasts[0].includes('could not be saved'));assert.equal(f.env.el('themeContinueBtn').disabled,false);assert.equal(f.run('themeSaving'),false);
+ assert(f.toasts[0].includes('will sync'));assert.equal(f.storage.get('9012_visual_theme'),'heirloom_light');assert.equal(f.storage.get('9012_pending_theme_fixture-account'),'heirloom_light');
+ assert.equal(f.env.el('themeContinueBtn').disabled,false);assert.equal(f.run('themeSaving'),false);
 });
-test('private/authentication logic and cloud migration stay unchanged from the milestone',()=>{
+test('a new device loads and applies the signed-in account theme',async()=>{
+ const f=fixture({cloudTheme:'heirloom_light'});await f.run('loadCloudThemeForSession()');
+ assert.equal(f.run('currentThemeKey'),'heirloom_light');assert.equal(f.storage.get('9012_visual_theme'),'heirloom_light');assert(f.calls.some(c=>c.name==='app9012_get_my_theme'));
+});
+test('an unsynced local choice cannot be replaced by an older account value',async()=>{
+ const f=fixture({storage:{'9012_visual_theme':'heirloom_light','9012_pending_theme_fixture-account':'heirloom_light'},rpc:async name=>name==='app9012_set_my_theme'?{error:Error('offline')}:{data:{theme_key:'lantern_heritage'},error:null}});
+ await f.run('loadCloudThemeForSession()');
+ assert.equal(f.run('currentThemeKey'),'heirloom_light');assert.equal(f.storage.get('9012_pending_theme_fixture-account'),'heirloom_light');assert(!f.calls.some(c=>c.name==='app9012_get_my_theme'));
+});
+test('sign-in, password setup, invitation return, and app boot all load the account theme',()=>{
+ for(const source of [section('async function saveNewPassword(){','/* letter */'),section('async function letterAction(){','function openLetter()'),section("if(supabaseClient){\n supabaseClient.auth.onAuthStateChange",'<!-- KEEPSAKE FEATURES -->')])assert.match(source,/loadCloudThemeForSession\(\)/);
+ assert.match(html,/if\(currentSession\)await loadCloudThemeForSession\(\);\n if\(currentSession&&!isFamilyInviteReturn\(\)\)await loadCloudForSession\(\);/);
+});
+test('account recovery logic and the historical milestone stay unchanged',()=>{
  const backup=fs.readFileSync(path.join(root,'Archive - Older HTML Builds/01 - Numbered Versions/index(23).html'),'utf8');
  assert.equal(crypto.createHash('sha256').update(backup).digest('hex'),'bb38a5636c6eeca99c2bd36cf0875aedcdc37e56b924d24a41c288ff7293d7e6');
- for(const [a,b] of [['// ACCOUNT RECOVERY STATE','// END ACCOUNT RECOVERY STATE'],['// ACCOUNT RECOVERY —','// END ACCOUNT RECOVERY\n'],['if(supabaseClient){\n supabaseClient.auth.onAuthStateChange','<!-- KEEPSAKE FEATURES -->']]){
+ for(const [a,b] of [['// ACCOUNT RECOVERY STATE','// END ACCOUNT RECOVERY STATE'],['// ACCOUNT RECOVERY —','// END ACCOUNT RECOVERY\n']]){
   const start=backup.indexOf(a),end=backup.indexOf(b,start);assert(start>=0&&end>start);assert.equal(section(a,b),backup.slice(start,end));
  }
 });

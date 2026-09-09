@@ -22,12 +22,15 @@ test('the guard is installed before asynchronous boot can load cloud context',()
  assert(html.indexOf('/* SHELF REVISION GUARD')<html.indexOf('(async function boot(){'));
 });
 
-test('the protected authentication and private-data section remains byte-for-byte unchanged',()=>{
+test('account-theme loading is the only change inside the protected authentication and private-data section',()=>{
  const backup=fs.readFileSync(path.join(root,'Archive - Older HTML Builds/01 - Numbered Versions/index(23).html'),'utf8');
  const start='if(supabaseClient){\n supabaseClient.auth.onAuthStateChange',end='<!-- KEEPSAKE FEATURES -->';
  const currentStart=html.indexOf(start),currentEnd=html.indexOf(end,currentStart);
  const oldStart=backup.indexOf(start),oldEnd=backup.indexOf(end,oldStart);
  assert(currentStart>=0&&currentEnd>currentStart&&oldStart>=0&&oldEnd>oldStart);
  const current=html.slice(currentStart,currentEnd),original=backup.slice(oldStart,oldEnd);
- assert.equal(crypto.createHash('sha256').update(current).digest('hex'),crypto.createHash('sha256').update(original).digest('hex'));
+ const normalized=current
+  .replace('       await loadCloudThemeForSession();\n','')
+  .replace(' if(currentSession)await loadCloudThemeForSession();\n','');
+ assert.equal(crypto.createHash('sha256').update(normalized).digest('hex'),crypto.createHash('sha256').update(original).digest('hex'));
 });
