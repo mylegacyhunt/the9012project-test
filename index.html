@@ -563,6 +563,9 @@ html[data-theme="heirloom_light"] .salvback:hover{background:#e5dac5;color:#493a
 html[data-theme="heirloom_light"] .salvwrap :focus-visible,html[data-theme="heirloom_light"] .salvationlink:focus-visible{outline:3px solid #4f5b42;outline-offset:4px;}
 html[data-theme="heirloom_light"] p[style*="color:#c9b78f"],html[data-theme="heirloom_light"] p[style*="color:#a99c83"]{color:#76604a!important;}
 html[data-theme="heirloom_light"] .signoutdialog h2,html[data-theme="heirloom_light"] .signoutdialog p{color:#594631;}
+html[data-theme="heirloom_light"] #eraseModal h3,html[data-theme="heirloom_light"] #eraseModal label{color:#594631!important;}
+html[data-theme="heirloom_light"] #eraseModal #eraseError{color:#8b3328;}
+html[data-theme="heirloom_light"] #eraseGo{color:#8b3328;border-color:#aa7865;}
 /* Nine-slice the supplied frame so the corners stay intact as the text grows. */
 html[data-theme="heirloom_light"] .wisdomcard{border:clamp(24px,5vw,44px) solid transparent;border-left-width:clamp(34px,7vw,62px);border-right-width:clamp(34px,7vw,62px);border-image:var(--frame) 170 240 fill stretch;background:#fff8e8;padding:12px clamp(8px,2vw,18px);overflow-wrap:anywhere;filter:drop-shadow(0 8px 14px rgba(82,61,36,.15));}
 html[data-theme="heirloom_light"] .wisdomcard .quote{color:#59472f;}
@@ -1540,8 +1543,9 @@ async function clearLocal9012(){
       }catch(e){ok=false;}
     }
   }
-  for(const store of [localStorage,sessionStorage]){
+  for(const name of ['localStorage','sessionStorage']){
     try{
+      const store=window[name];
       const rm=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))rm.push(k);}
       rm.forEach(k=>store.removeItem(k));
       for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))ok=false;}
