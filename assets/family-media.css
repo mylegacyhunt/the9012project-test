@@ -27,6 +27,15 @@ html[data-theme="heirloom_light"] #familyMediaRoot input[type="datetime-local"]{
 #familyMediaRoot select{font-size:16px;min-height:44px;width:auto;max-width:100%;}
 .fm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .fm-card{min-width:0;padding:16px;background:#18120c;border:1px solid #96763d66;border-radius:12px;}
+.fm-album-browser .fm-tools label{display:flex;flex-direction:column;gap:5px;max-width:100%;font-size:16px;}
+#familyMediaRoot .fm-album-browser input,#familyMediaRoot .fm-album-browser select{min-height:44px;max-width:100%;box-sizing:border-box;font-size:16px;background:#17110b;color:#e8dcc8;border:1px solid #96763d;border-radius:7px;padding:8px;color-scheme:dark;}
+#familyMediaRoot .fm-thumbnail{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;width:100%;padding:0;overflow:hidden;background:#282117;border-radius:8px;}
+.fm-thumbnail img{display:block;width:100%;height:100%;object-fit:contain;}
+.fm-thumbnail span{padding:12px;}
+.fm-card select{width:100%;margin-top:8px;}
+html[data-theme="heirloom_light"] .fm-card,html[data-theme="heirloom_light"] #familyMediaRoot .fm-thumbnail{background:#f5eddf;color:#594832;border-color:#ae9873;}
+html[data-theme="heirloom_light"] #familyMediaRoot .fm-meta{color:#705a40;}
+html[data-theme="heirloom_light"] #familyMediaRoot .fm-album-browser input,html[data-theme="heirloom_light"] #familyMediaRoot .fm-album-browser select{background:#fffdf7;color:#594832;border-color:#ae9873;color-scheme:light;}
 .fm-kind{display:block;font-size:13px;letter-spacing:.04em;color:#c9b78f;margin-bottom:10px;}
 #familyMediaRoot .fm-meta{font-size:14px;color:#c9b78f;line-height:1.4;}
 .fm-card button{width:100%;margin-top:8px;}

@@ -2,6 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const build=html.match(/<meta name="app-build" content="([^"]+)"/)[1];
 const start=html.indexOf('/* APP UPDATE CONTROLS */'),end=html.indexOf('/* END APP UPDATE CONTROLS */',start);
 assert(start>=0&&end>start);
 const controls=html.slice(start,end+'/* END APP UPDATE CONTROLS */'.length);
@@ -12,7 +13,7 @@ function fixture(options={}){
  if(options.pendingLetter)win.app9012Keepsakes={hasPendingWork:()=>true};
  const env={
   document:{baseURI:'https://test.the9012project.com/',lastModified:options.currentModified||'Wed, 09 Sep 2026 10:00:00 GMT',visibilityState:'visible',activeElement:null,
-   querySelector(selector){if(selector==='meta[name="app-build"]')return {content:'2026.09.09.7'};if(selector==='dialog[open],.modal.open')return options.dialogOpen?{}:null;return null;},
+   querySelector(selector){if(selector==='meta[name="app-build"]')return {content:build};if(selector==='dialog[open],.modal.open')return options.dialogOpen?{}:null;return null;},
    addEventListener:(name,fn)=>events['document:'+name]=fn},
   window:win,navigator:{onLine:true},location:{href:'https://test.the9012project.com/',replace:value=>{replaced=value;}},URL,Set,Date,Promise,
   bootReady:true,accountDeletionBusy:false,cloudSaving:false,cloudSavePending:false,cloudHydrating:false,cloudLoadPromise:null,
@@ -26,7 +27,7 @@ function fixture(options={}){
 }
 
 test('the app carries a build marker and checks every five minutes plus lifecycle events',()=>{
- assert.match(html,/<meta name="app-build" content="2026\.09\.09\.7"/);
+ assert.match(build,/^\d{4}\.\d{2}\.\d{2}\.\d+$/);
  assert.match(controls,/checkEvery=5\*60\*1000/);
  assert.match(controls,/setInterval\(checkForUpdate,checkEvery\)/);
  assert.match(controls,/addEventListener\('online',checkForUpdate\)/);
@@ -49,12 +50,12 @@ test('updates wait when a person is writing or remains on a writing screen',asyn
 });
 
 test('the server modification time detects an update even if a build marker was not bumped',async()=>{
- const f=fixture({latestSource:'<meta name="app-build" content="2026.09.09.7"/>'});
+ const f=fixture({latestSource:'<meta name="app-build" content="'+build+'"/>'});
  assert.equal(await f.env.window.app9012Updates.check(),true);assert.equal(f.notice.hidden,false);
 });
 
 test('the current server copy does not cause a reload loop',async()=>{
- const same='Wed, 09 Sep 2026 10:00:00 GMT',f=fixture({currentModified:same,latestModified:same,latestSource:'<meta name="app-build" content="2026.09.09.7"/>'});
+ const same='Wed, 09 Sep 2026 10:00:00 GMT',f=fixture({currentModified:same,latestModified:same,latestSource:'<meta name="app-build" content="'+build+'"/>'});
  assert.equal(await f.env.window.app9012Updates.check(),false);assert.equal(f.notice.hidden,true);assert.equal(f.replaced(),'');
 });
 

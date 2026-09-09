@@ -109,7 +109,7 @@
     if(!root||!root.document)return;const doc=root.document,host=doc.getElementById('familyMediaRoot');if(!host)return;
     const view=doc.getElementById('viewFamilyPhotos');
     const context=()=>typeof root.app9012FamilyMediaContext==='function'?root.app9012FamilyMediaContext():null;
-    let epoch=0,enabled=false,active=false,loading=false,draft=null,draftURL=null,busy=false,recordPhase='idle',mediaURL=null,sessionKey='',lastContext=null,rows=[],filter='all',nextPage=0;
+    let epoch=0,enabled=false,active=false,loading=false,draft=null,draftURL=null,busy=false,recordPhase='idle',mediaURL=null,sessionKey='',lastContext=null;
     const node=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
     const button=(text,action,cls='ghost')=>{const n=node('button',cls,text);n.type='button';n.addEventListener('click',action);return n;};
     const header=node('div','fm-heading');header.append(node('h2','','Pictures, videos & voices'),node('span','fm-badge','Family test'));
@@ -128,17 +128,12 @@
     const preview=node('div','fm-preview');
     const captionLabel=node('label','','Caption (optional)');const caption=node('textarea');caption.id='familyMediaCaption';caption.maxLength=1000;caption.rows=2;captionLabel.htmlFor=caption.id;
     const captureLabel=node('label','','When was this taken? (optional)');const captureDate=node('input');captureDate.type='datetime-local';captureDate.id='familyMediaCaptureDate';captureLabel.htmlFor=captureDate.id;
-    const captureNote=node('p','fm-hint','We use the device file date when available. You can correct it here. Location information is not copied.');let captureDateTouched=false;
+    const captureNote=node('p','fm-hint','We use the device file date when available. You can correct it here. Originals retain embedded metadata; remove location from the original before sharing if needed. Album previews do not display location.');let captureDateTouched=false;
     const transcriptLabel=node('label','','Written transcript (optional — type or paste)');const transcript=node('textarea');transcript.id='familyMediaTranscript';transcript.maxLength=12000;transcript.rows=4;transcriptLabel.htmlFor=transcript.id;
     const consentLabel=node('label','fm-consent');const consent=node('input');consent.type='checkbox';consent.id='familyMediaConsent';consentLabel.append(consent,doc.createTextNode(' Share this file and its text with my connected family.'));
     const editorActions=node('div','fm-tools');const share=button('Share with my family',submit,'fm-share');const discard=button('Discard draft',clearDraft);editorActions.append(share,discard);
     editor.append(node('h3','','Preview before sharing'),preview,captionLabel,caption,captureLabel,captureDate,captureNote,transcriptLabel,transcript,consentLabel,editorActions,node('p','fm-hint','Nothing uploads until you press Share. Leaving this album clears an unshared draft from this screen. Only share files you want your connected family to keep.'));
-    const filterRow=node('div','fm-tools');const filterLabel=node('label','','Show');const select=node('select');select.id='familyMediaFilter';filterLabel.htmlFor=select.id;
-    for(const [value,label] of [['all','All memories'],['photo','Pictures'],['video','Videos'],['voice','Voices']]){const o=node('option','',label);o.value=value;select.append(o);}
-    select.addEventListener('change',()=>{filter=select.value;drawRows();});
-    const refresh=button('Refresh family memories',()=>load(true));filterRow.append(filterLabel,select,refresh);
-    const gallery=node('div','fm-grid');const more=button('Load older memories',()=>load(false));more.hidden=true;
-    host.append(header,intro,status,tools,hint,editor,filterRow,gallery,more,retention);
+    host.append(header,intro,status,tools,hint,editor,retention);
     const viewer=node('dialog','fm-viewer');viewer.setAttribute('aria-labelledby','familyMediaViewerTitle');
     const viewerHead=node('div','fm-viewerhead');const viewerTitle=node('h2','','Family memory');viewerTitle.id='familyMediaViewerTitle';
     const viewerClose=button('Close',closeViewer);viewerClose.setAttribute('aria-label','Close family memory');viewerHead.append(viewerTitle,viewerClose);
@@ -147,13 +142,13 @@
     viewer.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeViewer();}});
     let viewerTrigger=null,viewerRequest=0;
     const setStatus=text=>{status.textContent=text;};
+    const albumBrowser=root.app9012Albums.mount(root,{host,context,bucket:BUCKET,active:()=>active,open:openMedia,hide});
     function update(){
       choose.disabled=!enabled||busy||!!draft||recordPhase!=='idle';record.disabled=choose.disabled;
       stop.hidden=!['recording','stopping'].includes(recordPhase);stop.disabled=recordPhase==='stopping';
       cancelRecording.hidden=recordPhase==='idle';
       share.disabled=!enabled||busy||!draft||!consent.checked||recordPhase!=='idle';
       discard.disabled=busy;caption.disabled=captureDate.disabled=transcript.disabled=consent.disabled=busy;
-      refresh.disabled=!enabled||busy||loading;more.disabled=refresh.disabled;
     }
     const recorder=createRecorder({Recorder:root.MediaRecorder,Blob:root.Blob,getUserMedia:root.isSecureContext&&root.navigator.mediaDevices?.getUserMedia?opts=>root.navigator.mediaDevices.getUserMedia(opts):null,
       onState(phase,message){recordPhase=phase;setStatus(message);update();},onReady(blob){setDraft(blob,'voice_recorder');}});
@@ -175,8 +170,9 @@
       }catch(e){fileInput.value='';setStatus(e.message);}
     }
     fileInput.addEventListener('change',()=>{if(!active||!enabled||busy){fileInput.value='';return;}const file=fileInput.files&&fileInput.files[0];if(file)setDraft(file,'file_picker');});captureDate.addEventListener('change',()=>{captureDateTouched=true;});consent.addEventListener('change',update);
-    view.addEventListener('paste',event=>{
-      if(!active||!enabled||busy||draft)return;
+    doc.addEventListener('paste',event=>{
+      if(!active||!enabled||busy||draft||recordPhase!=='idle')return;
+      if(doc.querySelector('dialog[open]'))return;
       const target=event.target;
       if(target&&typeof target.closest==='function'&&target.closest('textarea,input,[contenteditable]'))return;
       const file=clipboardImage(event.clipboardData);
@@ -189,6 +185,7 @@
       busy=true;update();const start=epoch,ctx=context(),currentDraft=draft;
       try{
         await shareDraft({draft:currentDraft,snapshot:ctx,context,consent:consent.checked,caption:caption.value.trim(),captureDate:captureDateTouched?captureDate.value:'',transcript:validateFile(currentDraft.file).kind==='voice'?transcript.value.trim():'',cancelled:()=>epoch!==start,status:setStatus});
+        if(start===epoch)try{await albumBrowser.savePreview({id:currentDraft.id},currentDraft.file);}catch(e){/* Sharing succeeded; previews can be retried in the album. */}
         if(start!==epoch)return;busy=false;clearDraft();setStatus('Shared with your connected family.');await load(true);
       }catch(e){if(start!==epoch)return;setStatus('Sharing was not confirmed. Your draft is still here. Check your connection and press Share to retry.');}
       finally{if(start===epoch){busy=false;update();}}
@@ -200,31 +197,17 @@
         const access=await ctx.client.rpc('app9012_media_context',{p_household_id:ctx.householdId});
         if(start!==epoch||!sameAccount(ctx,context()))return;
         if(access.error||!access.data?.enabled||access.data.user_id!==ctx.userId||access.data.household_id!==ctx.householdId)throw Error('not_enabled');
-        enabled=true;if(reset){rows=[];nextPage=0;}
-        const r=await ctx.client.from('app9012_family_media').select('id,storage_path,original_filename,media_kind,mime_type,byte_size,caption,transcript,uploader_name,uploader_user_id,captured_at,manual_capture_override,effective_captured_at,metadata_status,shared_at').eq('household_id',ctx.householdId).eq('state','shared').order('effective_captured_at',{ascending:false,nullsFirst:false}).order('shared_at',{ascending:false}).order('id',{ascending:false}).range(nextPage,nextPage+23);
-        if(start!==epoch||!sameAccount(ctx,context()))return;if(r.error)throw r.error;
-        const page=r.data||[];rows=[...new Map(rows.concat(page).map(r=>[r.id,r])).values()];nextPage+=page.length;more.hidden=page.length<24;
-        drawRows();if(!draft&&!recorder.busy())setStatus('Private family test — only your connected household can open these files.');
-      }catch(e){if(start!==epoch)return;enabled=false;rows=[];gallery.replaceChildren();more.hidden=true;setStatus('Family media is locked until your household is enabled in Supabase. If it was already enabled, check your connection and reopen the album.');}
+        enabled=true;
+        await albumBrowser.load(reset);
+        if(start!==epoch||!sameAccount(ctx,context()))return;
+        if(!draft&&!recorder.busy())setStatus('Only your connected family can open these files.');
+      }catch(e){if(start!==epoch)return;enabled=false;albumBrowser.reset();setStatus('Family media is locked until your household is enabled in Supabase. If it was already enabled, check your connection and reopen the album.');}
       finally{if(start===epoch){loading=false;update();}}
-    }
-    function drawRows(){
-      gallery.replaceChildren();const shown=rows.filter(r=>filter==='all'||r.media_kind===filter);
-      if(!shown.length){gallery.append(node('p','fm-empty',rows.length?'No '+filter+' memories in the loaded items.':'Your family’s pictures, videos and voices will gather here.'));return;}
-      for(const row of shown){
-        const card=node('article','fm-card');const kind={photo:'Picture',video:'Video',voice:'Voice recording'}[row.media_kind]||'Memory';
-        const memoryDate=row.effective_captured_at||row.captured_at||row.shared_at,dateNote=row.metadata_status==='user_corrected'?' · date corrected':row.metadata_status==='estimated'||row.metadata_status==='fallback'?' · date estimated':'';
-        card.append(node('span','fm-kind',kind),node('h3','',row.caption||row.original_filename||kind),node('p','fm-meta',(row.uploader_name||'Family member')+' · '+new Date(memoryDate).toLocaleDateString()+dateNote));
-        const open=button(row.media_kind==='photo'?'Open picture':row.media_kind==='video'?'Open video':'Listen to voice',()=>openMedia(row,open));card.append(open);
-        if(row.transcript){const details=node('details');details.append(node('summary','','Read transcript'),node('p','fm-transcript',row.transcript));card.append(details);}
-        if(row.uploader_user_id===context()?.userId)card.append(button('Remove from family',()=>hide(row),'ghost fm-remove'));
-        gallery.append(card);
-      }
     }
     async function hide(row){
       if(busy||!root.confirm('Remove this memory from the family album? This hides it from family viewing; it does not delete the stored original.'))return;
       const ctx=context(),start=epoch;busy=true;update();
-      try{const r=await ctx.client.rpc('app9012_media_hide',{p_household_id:ctx.householdId,p_id:row.id});if(start!==epoch||!sameAccount(ctx,context()))return;if(r.error)throw r.error;closeViewer();rows=rows.filter(r=>r.id!==row.id);drawRows();setStatus('Removed from the family album. The stored original has not been deleted.');}
+      try{const r=await ctx.client.rpc('app9012_media_hide',{p_household_id:ctx.householdId,p_id:row.id});if(start!==epoch||!sameAccount(ctx,context()))return;if(r.error)throw r.error;closeViewer();await albumBrowser.refresh();setStatus('Removed from the family album. The stored original has not been deleted.');}
       catch(e){if(start===epoch)setStatus('This memory could not be removed. Please retry.');}finally{if(start===epoch){busy=false;update();}}
     }
     function closeViewer(){viewerRequest++;viewerBody.querySelectorAll('audio,video').forEach(p=>{p.pause();p.removeAttribute('src');p.load();});viewerBody.replaceChildren();if(mediaURL){root.URL.revokeObjectURL(mediaURL);mediaURL=null;}if(viewer.open)viewer.close();if(viewerTrigger?.isConnected)viewerTrigger.focus();viewerTrigger=null;}
@@ -232,15 +215,16 @@
       closeViewer();viewerTrigger=trigger;const ctx=context(),start=epoch,request=viewerRequest;
       viewerTitle.textContent=row.caption||'Family memory';viewerBody.append(node('p','','Opening securely…'));viewer.showModal();viewerClose.focus();
       try{
-        const expected=ctx.householdId+'/'+row.uploader_user_id+'/'+row.id;if(row.storage_path!==expected)throw Error('invalid_path');
+        if(!root.app9012Albums.safePath(row,ctx.householdId))throw Error('invalid_path');const expected=row.storage_path;
         const r=await ctx.client.storage.from(BUCKET).download(expected);
         if(start!==epoch||request!==viewerRequest||!sameAccount(ctx,context()))return;if(r.error)throw r.error;
         const blob=r.data;validateFile(blob);if(blob.size!==Number(row.byte_size)||blob.type.split(';')[0]!==row.mime_type)throw Error('invalid_file');
         mediaURL=root.URL.createObjectURL(blob);viewerBody.replaceChildren(player(blob,mediaURL,row.caption));
-        if(row.transcript)viewerBody.append(node('p','fm-transcript',row.transcript));
+        await albumBrowser.viewed(row);
+        if(row.has_transcript){const text=await ctx.client.from('app9012_family_media').select('transcript').eq('id',row.id).single();if(start===epoch&&request===viewerRequest&&!text.error&&text.data?.transcript)viewerBody.append(node('p','fm-transcript',text.data.transcript));}
       }catch(e){if(start===epoch&&request===viewerRequest)viewerBody.replaceChildren(node('p','','This file could not be opened. Check your connection and family access, then try again.'));}
     }
-    function reset(){epoch++;enabled=false;loading=false;busy=false;recorder.cancel();clearDraft();closeViewer();rows=[];gallery.replaceChildren();more.hidden=true;update();}
+    function reset(){epoch++;enabled=false;loading=false;busy=false;albumBrowser.reset();recorder.cancel();clearDraft();closeViewer();update();}
     function sync(){
       const ctx=context(),key=ctx?.userId+'/'+ctx?.householdId,now=view.classList.contains('active');
       if(key!==sessionKey){reset();sessionKey=key;active=false;}lastContext=ctx;
@@ -256,7 +240,7 @@
     doc.addEventListener('visibilitychange',()=>{if(doc.hidden){recorder.stop();closeViewer();}});
     root.addEventListener('pagehide',()=>{active=false;reset();});
     root.addEventListener('beforeunload',e=>{if(draft||busy||recorder.busy()){e.preventDefault();e.returnValue='';}});
-    root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset,hasPendingWork:()=>!!draft||busy||recorder.busy()};update();sync();
+    root.app9012FamilyMedia={stopRecording:()=>recorder.stop(),reset,hasPendingWork:()=>!!draft||busy||recorder.busy()||albumBrowser.busy()};update();sync();
   }
   return {BUCKET,TYPES,LIMITS,validateFile,clipboardImage,mediaDetails,sameAccount,createRecorder,shareDraft,mount};
 }));
