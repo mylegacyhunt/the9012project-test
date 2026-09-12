@@ -5,11 +5,12 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" id="appThemeColor" content="#140d06"/>
-<meta name="app-build" content="2026.09.09.8"/>
+<meta name="app-build" content="2026.09.11.1"/>
 <link rel="icon" id="appFavicon" type="image/png" sizes="32x32" href="assets/images/themes/lantern-heritage/icons/app-icon-32-v1-app.png"/>
 <link rel="apple-touch-icon" id="appTouchIcon" sizes="180x180" href="assets/images/themes/lantern-heritage/icons/app-icon-180-v1-app.png"/>
 <link rel="manifest" id="appManifest" href="manifest.webmanifest"/>
 <script src="assets/app-icons/theme-icons.js"></script>
+<script src="assets/account-deletion.js?v=20260911a"></script>
 <link rel="stylesheet" href="assets/waymark-dictation.css?v=20260903b"/>
 <script src="assets/waymark-dictation.js?v=20260903b" defer></script>
 <!-- FAMILY MEDIA ASSETS -->
@@ -1175,16 +1176,16 @@ html[data-theme="heirloom_light"] .appupdate{background:rgba(255,250,240,.98);co
 <div class="modal" id="familyRuleModal"><div class="mbox"><h3 id="familyRuleModalTitle">Add a Family Rule</h3><input type="hidden" id="familyRuleId"/><label style="display:block;text-align:left;margin:0 0 5px">Rule title</label><input type="text" id="familyRuleTitle" placeholder="e.g. We tell the truth"/><label style="display:block;text-align:left;margin:8px 0 5px">What is the rule?</label><textarea id="familyRuleText" style="min-height:120px" placeholder="Write the standard clearly enough that the whole family understands it."></textarea><div id="familyRuleChangeNoteWrap" style="display:none"><label style="display:block;text-align:left;margin:8px 0 5px">What changed? (optional)</label><input type="text" id="familyRuleChangeNote" placeholder="Why Mom and Dad revised this rule"/></div><div class="mrow"><button class="ghost" onclick="closeModal('familyRuleModal')">Cancel</button><button id="familyRuleSaveBtn" onclick="saveFamilyRule()">Save Rule</button></div></div></div>
 <div class="modal" id="familyRuleReviewModal"><div class="mbox"><h3 id="familyRuleReviewTitle">Review this Family Rule</h3><input type="hidden" id="familyRuleReviewId"/><label style="display:block;text-align:left;margin:0 0 5px">Did this work?</label><textarea id="ruleDidWork" placeholder="What actually happened when your family lived this out?"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">How did this help?</label><textarea id="ruleHowHelped"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What didn&rsquo;t work?</label><textarea id="ruleDidntWork"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What did we learn?</label><textarea id="ruleLearned"></textarea><label style="display:block;text-align:left;margin:8px 0 5px">What should we change?</label><textarea id="ruleShouldChange"></textarea><div class="mrow"><button class="ghost" onclick="closeModal('familyRuleReviewModal')">Cancel</button><button id="familyRuleReviewSave" onclick="saveFamilyRuleReview()">Save Reflection</button></div></div></div>
 <div class="modal" id="familyRuleHistoryModal"><div class="mbox"><h3 id="familyRuleHistoryTitle">Family Rule History</h3><div id="familyRuleHistoryList"><div class="wisdomempty">Loading history&hellip;</div></div><div class="mrow"><button onclick="closeModal('familyRuleHistoryModal')">Done</button></div></div></div>
-<div class="modal" id="eraseModal"><div class="mbox">
+<div class="modal" id="eraseModal" role="dialog" aria-modal="true" aria-labelledby="eraseHead"><div class="mbox">
   <h3 id="eraseHead" style="color:#e0a080;margin:0 0 6px">Permanently delete my personal account?</h3>
   <p style="color:#c9b78f;font-style:italic;margin:0 0 10px;line-height:1.5">This permanently removes your sign-in account, private journal, prayers, goals, private files, and private recovery history. It cannot be undone.</p>
   <p style="color:#a99c83;font-size:13px;margin:0 0 12px;line-height:1.5"><b>This does not delete 90:12 or another person&rsquo;s account.</b> Letters, Waymarks, photos, videos, voice recordings, and attachments already shared with connected family remain available to them.</p>
   <div id="eraseTransferWrap" style="display:none;margin:0 0 14px"><label for="eraseSuccessor" style="display:block;color:#c9b78f;font-size:13px;margin:0 0 6px">Transfer household ownership to</label><select id="eraseSuccessor" onchange="checkErase()" style="width:100%"></select><p style="color:#a99c83;font-size:12px;line-height:1.4;margin:6px 0 0">Connected family members and their information remain in the household.</p></div>
   <p class="eraseerror" id="eraseError" role="alert"></p>
-  <button class="ghost mini" style="margin:0 0 14px" onclick="backupData()">&#11015; Back up first</button>
+  <button class="ghost mini" id="eraseBackup" style="margin:0 0 14px" onclick="backupData()">&#11015; Back up first</button>
   <label style="display:block;color:#c9b78f;font-size:13px;margin:0 0 6px">Type <b>DELETE MY ACCOUNT</b> to confirm</label>
   <input type="text" id="eraseGate" autocomplete="off" autocapitalize="characters" placeholder="DELETE MY ACCOUNT" oninput="checkErase()" style="text-align:center;letter-spacing:.16em;margin:0 0 14px"/>
-  <div class="mrow"><button class="ghost" onclick="closeModal('eraseModal')">Cancel</button><button class="danger" id="eraseGo" disabled style="opacity:.4" onclick="doEraseAll()">Permanently delete my account</button></div>
+  <div class="mrow"><button class="ghost" id="eraseCancel" onclick="closeModal('eraseModal')">Cancel</button><button class="ghost" id="eraseCheck" hidden onclick="checkDeletionProgress9012()">Check progress</button><button class="ghost" id="eraseSignIn" hidden onclick="signInForDeletion9012()">Sign in to finish</button><button class="danger" id="eraseGo" disabled style="opacity:.4" onclick="doEraseAll()">Permanently delete my account</button></div>
 </div></div><div class="modal" id="answerModal"><div class="mbox"><h3>He answered</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 10px">How did God answer this prayer?</p><textarea id="answerNote" placeholder="Tell what He did..."></textarea><div class="mrow"><button class="ghost" onclick="closeModal('answerModal')">Cancel</button><button onclick="saveAnswer()">Mark answered</button></div></div></div><div class="modal" id="gateModal"><div class="mbox" style="text-align:center"><h3>The Secret Place</h3><p style="color:#c9b78f;font-style:italic;margin:0 0 6px">&ldquo;He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.&rdquo;</p><p style="color:#7c7059;font-size:12px;margin:0 0 14px">Psalm 91:1</p><p class="privacyexplain">Your prayers and journal entries inside can be protected by a screen lock.</p><div class="mrow" style="justify-content:center"><button onclick="unlockSecret()">Enter the Secret Place</button></div></div></div>
 <div class="modal" id="screenLockInfoModal"><div class="mbox"><h3>What the Secret Place screen lock protects</h3><p class="screenlockinfo"><strong>It helps prevent casual viewing on this device.</strong> It guards everything inside the Secret Place &mdash; your prayers and your journal. It does not encrypt them, and cannot protect them from someone who has access to this browser&rsquo;s stored website data.</p><p class="screenlockinfo">Your passcode itself is never kept or synced in readable form. Only a scrambled fingerprint of it is stored, so the passcode cannot be read from this device or from the 90:12 servers.</p><p class="screenlockinfo">The Secret Place relocks after five minutes without activity, when this page is hidden, and when the browser closes.</p><div class="mrow"><button onclick="closeModal('screenLockInfoModal')">I understand</button></div></div></div>
 <script>
@@ -1283,7 +1284,7 @@ if(supabaseClient&&typeof supabaseClient.rpc==='function'){
 
 const mem={};
 function lsGet(k){try{const v=localStorage.getItem('9012_'+k);return v==null?undefined:JSON.parse(v);}catch(e){return undefined;}}
-function lsSet(k,v){try{localStorage.setItem('9012_'+k,JSON.stringify(v));return true;}catch(e){return false;}}
+function lsSet(k,v){if(typeof accountDeletionPending9012==='function'&&accountDeletionPending9012())return false;try{localStorage.setItem('9012_'+k,JSON.stringify(v));return true;}catch(e){return false;}}
 /* Layered, durable storage. In this chat it uses the app's own storage; opened as a
    file on any device it uses that browser's storage; and a live copy is always kept.
    Nothing here ever throws, so the shelf loads no matter where it runs. */
@@ -1294,6 +1295,7 @@ const Store={
     return (k in mem)?mem[k]:null;
   },
   async set(k,v){
+    if(accountDeletionPending9012())return false;
     mem[k]=v;let ok=false;
     if(window.storage&&window.storage.set){try{await window.storage.set(k,JSON.stringify(v));ok=true;}catch(e){}}
     if(lsSet(k,v))ok=true;
@@ -1396,6 +1398,7 @@ async function legacyCloudLoad(){
   return r.data||null;
 }
 async function legacyCloudSave(){
+  if(accountDeletionPending9012())throw Error('Account deletion needs confirmation.');
   if(!supabaseClient||!currentSession)return;
   const r=await supabaseClient.from('keepsakes').upsert({
     user_id:currentSession.user.id,
@@ -1495,12 +1498,14 @@ async function loadCloudForSessionNow(){
   }catch(err){console.error('90:12 legacy cloud load failed:',err);}
 }
 async function loadCloudForSession(){
+  if(accountDeletionPending9012())return;
   if(cloudLoadPromise)return cloudLoadPromise;
   cloudLoadPromise=loadCloudForSessionNow();
   try{return await cloudLoadPromise;}
   finally{cloudLoadPromise=null;}
 }
 async function cloudSaveNow(){
+  if(accountDeletionBusy||accountDeletionPending9012())return;
   if(cloudHydrating||!supabaseClient||!currentSession)return;
   if(cloudSaving){cloudSavePending=true;return;}
   cloudSaving=true;
@@ -1525,14 +1530,18 @@ async function cloudSaveNow(){
   }
 }
 function queueCloudSave(){
+  if(accountDeletionPending9012())return;
   if(accountDeletionBusy||cloudHydrating||!currentSession)return;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(cloudSaveNow,180);
 }
-async function clearLocal9012(){
+async function clearLocal9012(canClear){
   let ok=true;
+  const preserveRecovery=accountDeletionPending9012();
+  const isRecovery=k=>preserveRecovery&&(k==='9012_account_deletion_pending'||k==='9012_account_deletion_recovery');
   if(window.storage&&window.storage.set){
     for(const k of ['people','releasedPeople']){
+      if(canClear&&!canClear())return false;
       try{
         await window.storage.set(k,JSON.stringify([]));
         if(window.storage.get){const r=await window.storage.get(k),v=r&&r.value!=null?JSON.parse(r.value):null;if(!Array.isArray(v)||v.length)ok=false;}
@@ -1540,11 +1549,12 @@ async function clearLocal9012(){
     }
   }
   for(const name of ['localStorage','sessionStorage']){
+    if(canClear&&!canClear())return false;
     try{
       const store=window[name];
-      const rm=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))rm.push(k);}
+      const rm=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&!isRecovery(k)&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))rm.push(k);}
       rm.forEach(k=>store.removeItem(k));
-      for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))ok=false;}
+      for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&!isRecovery(k)&&(k.indexOf('9012_')===0||/^sb-.*-auth-token$/.test(k)))ok=false;}
     }catch(e){ok=false;}
   }
   try{for(const k in mem)delete mem[k];}catch(e){ok=false;}
@@ -1750,7 +1760,7 @@ function armAppHistory(){try{appHistoryDepth=Number(history.state&&history.state
 function prepareHistoryView(id){if(id==='viewFamily')renderFamily();else if(id==='viewFamilyPhotos')loadFamilyPhotoAlbum();else if(id==='viewWaymarks')renderWaymarks();else if(id==='view12Stones')render12Stones();else if(id==='viewWisdom')renderWisdomHub();else if(id==='viewChart')renderChart();else if(id==='viewJournal')renderJournal();else if(id==='viewRecentlyDeleted')renderRecentlyDeleted();if(['viewJar','viewFamily','viewFamilyPhotos','viewWaymarks','view12Stones','viewWisdom','viewChart'].indexOf(id)>=0)markTabs(id);}
 function appBack(fallback){if(appNavigationReady&&appHistoryDepth>0){history.back();return;}if(fallback==='viewJar')openMyShelf();else show(fallback||'viewJar');}
 window.addEventListener('popstate',function(e){const id=e.state&&e.state.app9012View;if(!id||!el(id))return;appHistoryDepth=Number(e.state.app9012Depth)||0;appHistoryLock=true;try{prepareHistoryView(id);show(id);}finally{appHistoryLock=false;}});
-function openModal(id){el(id).classList.add('open');} function closeModal(id){el(id).classList.remove('open');}
+function openModal(id){if(accountDeletionPending9012()&&id!=='eraseModal'&&!(deletionSignIn9012&&id==='confirmModal'&&el('cfYes').style.display==='none'))return;el(id).classList.add('open');} function closeModal(id){if(id==='eraseModal'&&accountDeletionPending9012())return;el(id).classList.remove('open');}
 function markTabs(id){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.t===id));applyExperienceUI();}
 function tab(id){if(!guidedViewAllowed(id)){notify('One room at a time',guidedNextCopy(guidedFeatureLevel(P())));return;}if(id==='viewFamily'){showFamily();return;}if(id==='viewWaymarks')renderWaymarks();if(id==='view12Stones')render12Stones();if(id==='viewWisdom')renderWisdomHub();if(id==='viewChart')renderChart();markTabs(id);show(id);if(id==='viewWaymarks')maybeCoach('waymarks');else if(id==='viewChart')maybeCoach('chart');}
 
@@ -1798,6 +1808,7 @@ function showPasswordSetupNow(){
  setTimeout(function(){var p=el('newPassword');if(p)p.focus();},80);
 }
 function routeHome(){
+ if(accountDeletionPending9012()){if(deletionRecovery9012){deletionRecovery9012.restore();renderDeletionRecovery9012(deletionRecovery9012.state());}return;}
  if(passwordRecovery.active){showPasswordRecoveryNow();return;}
   if(!currentSession){show('viewLetter');showEntryMode('signin');return;}
  if(needsPasswordSetup()){showPasswordSetupNow();return;}
@@ -3394,6 +3405,7 @@ async function doLegacyRestore(){if(!pendingRestore)return;
 
 /* Permanent personal-account deletion; shared family material survives. */
 async function askEraseAll(){
+ if(accountDeletionPending9012()){deletionRecovery9012.restore();openModal('eraseModal');await checkDeletionProgress9012();return;}
  if(!supabaseClient||!currentSession){notify('Sign in required','Sign in before permanently deleting a personal account.');return;}
  const g=el('eraseGate'),e=el('eraseError'),b=el('eraseGo'),wrap=el('eraseTransferWrap'),select=el('eraseSuccessor');
  if(g)g.value='';if(e){e.style.display='none';e.textContent='';}if(wrap)wrap.style.display='none';if(select)select.innerHTML='';
@@ -3408,33 +3420,89 @@ async function askEraseAll(){
  }
  checkErase();
 }
-function checkErase(){const wrap=el('eraseTransferWrap'),successor=el('eraseSuccessor');const transferOk=!wrap||wrap.style.display==='none'||!!successor.value;const ok=(el('eraseGate').value.trim().toUpperCase()==='DELETE MY ACCOUNT')&&transferOk;const b=el('eraseGo');b.disabled=!ok;b.style.opacity=ok?'1':'.4';}
-function withEraseTimeout(promise,ms){return new Promise(function(resolve,reject){const timer=setTimeout(function(){const e=new Error('The cloud did not confirm in time.');e.code='ERASE_TIMEOUT';reject(e);},ms);Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(err){clearTimeout(timer);reject(err);});});}
-function showEraseFailure(err){const box=el('eraseError');const code=err&&err.code;let msg='Your account was not confirmed deleted. Nothing on this device was cleared. Please try again.';if(code==='DEVICE_CLEANUP_FAILED')msg='Your cloud account was deleted, but this browser could not clear every cached copy. Close this page and clear this site\u2019s browser data.';else if(!currentSession)msg='Please sign in again before deleting your account.';else if(code==='ERASE_TIMEOUT')msg='The server did not confirm in time. Keep this page open, check your connection, and try again.';else if(code==='eligible_successor_required'||code==='household_owner_transfer_required')msg='A household owner must transfer ownership to a connected adult before deleting their account.';else if(code==='parent_managed_shelf')msg='This parent-managed shelf must be released before its account can be deleted.';else if(typeof navigator!=='undefined'&&navigator.onLine===false)msg='You appear to be offline. Reconnect and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
-async function eraseCloudCopy(successorPersonId){
- if(!supabaseClient||!currentSession||!currentSession.user)throw Object.assign(new Error('authentication_required'),{code:'authentication_required'});
- const result=await supabaseClient.functions.invoke('delete-account',{body:{confirmation:'DELETE MY ACCOUNT',successorPersonId:successorPersonId||undefined}});
- if(result.error){try{const payload=await result.error.context.json();if(payload&&payload.error)result.error.code=payload.error;}catch(e){}throw result.error;}if(!result.data||result.data.deleted!==true)throw Object.assign(new Error((result.data&&result.data.error)||'deletion_not_confirmed'),{code:(result.data&&result.data.error)||'deletion_not_confirmed'});
- return true;
+function checkErase(){if(accountDeletionPending9012())return;const wrap=el('eraseTransferWrap'),successor=el('eraseSuccessor');const transferOk=!wrap||wrap.style.display==='none'||!!successor.value;const ok=(el('eraseGate').value.trim().toUpperCase()==='DELETE MY ACCOUNT')&&transferOk;const b=el('eraseGo');b.disabled=!ok;b.style.opacity=ok?'1':'.4';}
+function showEraseFailure(err){const box=el('eraseError');const msg=window.app9012Deletion?window.app9012Deletion.message(err):'Account deletion is unavailable. Please reload and try again.';if(box){box.textContent=msg;box.style.display='block';}return msg;}
+var deletionRecovery9012=null,deletionSignIn9012=false;
+function accountDeletionPending9012(){
+ if(deletionRecovery9012&&deletionRecovery9012.pending())return true;
+ try{return !!localStorage.getItem('9012_account_deletion_pending');}catch(e){return false;}
+}
+function deletionPreflight9012(){
+ const reliability=window.app9012SaveReliability&&window.app9012SaveReliability.status();
+ if(cloudSaving||cloudSavePending||cloudHydrating||cloudLoadPromise||signOutBusy||passwordRecovery.busy||themeSaving||cloudThemeLoadPromise||(typeof _recOn!=='undefined'&&_recOn)||(reliability&&reliability.device==='saving'))return true;
+ for(const api of [window.app9012Keepsakes,window.app9012FamilyMedia]){try{if(api&&api.hasPendingWork&&api.hasPendingWork())return true;}catch(e){return true;}}
+ return false;
+}
+async function deletionRequest9012(path,accessToken,body,timeout){
+ const controller=timeout?new AbortController():null,timer=timeout?setTimeout(()=>controller.abort(),timeout):null;
+ try{
+  const response=await fetch(SUPABASE_URL+path,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',...(controller?{signal:controller.signal}:{})});
+  const data=await response.json();
+  if(!response.ok)throw Object.assign(new Error(data.error||'deletion_not_confirmed'),{code:response.status===401?'authentication_required':data.error,phase:data.phase});
+  return data;
+ }finally{if(timer)clearTimeout(timer);}
 }
 async function doEraseAll(){
- const b=el('eraseGo'),g=el('eraseGate'),select=el('eraseSuccessor');
- if(accountDeletionBusy)return false;if(cloudSaving||cloudHydrating||cloudLoadPromise){showEraseFailure(Object.assign(new Error('save_in_progress'),{code:'save_in_progress'}));return false;}
- accountDeletionBusy=true;clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSavePending=false;
- if(b){b.disabled=true;b.style.opacity='.65';b.textContent='Deleting personal account\u2026';}if(g)g.disabled=true;if(select)select.disabled=true;
- try{
-   await withEraseTimeout(eraseCloudCopy(select&&select.value),60000);
- }catch(e){console.error('90:12 account deletion failed:',e);accountDeletionBusy=false;showEraseFailure(e);if(g)g.disabled=false;if(select)select.disabled=false;if(b){b.disabled=false;b.style.opacity='1';b.textContent='Try deleting again';}return false;}
- clearTimeout(secretDraftTimer);secretDraftTimer=null;clearSecretResumeMarker();
- const draft=el('prayerBody');if(draft)draft.value='';
- try{await supabaseClient.auth.signOut({scope:'local'});}catch(e){}
- const cleared=await clearLocal9012();
- people=[];releasedPeople=[];cur=0;activePersonId=null;householdRole=null;householdId=null;
- currentSession=null;cloudMode='local';
- if(!cleared){document.body.innerHTML='<main style="max-width:620px;margin:12vh auto;padding:28px;font:18px/1.55 Georgia,serif;color:#f0dfb8;background:#1f2b25;border-radius:18px"><h1 style="font-size:28px">Your personal account was deleted</h1><p>Your cloud account is permanently deleted, but this browser could not clear every cached copy. Close this tab and clear this site\u2019s browser data before using this device again.</p></main>';return false;}
- alert('Your personal account was permanently deleted. 90:12 and your family\u2019s accounts remain.');
- const cleanUrl=new URL(location.href);cleanUrl.search='';cleanUrl.hash='';location.replace(cleanUrl.href);
- return true;
+ if(!deletionRecovery9012){showEraseFailure({code:'recovery_unavailable'});return false;}
+ if(accountDeletionPending9012())return deletionRecovery9012.retry();
+ checkErase();if(el('eraseGo').disabled)return false;
+ return deletionRecovery9012.begin(el('eraseSuccessor').value);
+}
+async function checkDeletionProgress9012(){if(deletionRecovery9012)return deletionRecovery9012.check();}
+async function signInForDeletion9012(){
+ if(!deletionRecovery9012||deletionRecovery9012.state().inFlight)return;
+ deletionRecovery9012.rememberSession();
+ // The user explicitly chooses a fresh sign-in. Keep all device copies intact.
+ if(currentSession){
+  try{const result=await supabaseClient.auth.signOut({scope:'local'});if(result.error)throw result.error;currentSession=null;}
+  catch(e){showEraseFailure({code:'authentication_required'});return;}
+ }
+ deletionSignIn9012=true;const wrap=document.querySelector('.wrap');if(wrap){wrap.inert=false;wrap.hidden=false;}
+ el('eraseModal').classList.remove('open');openLetter();
+}
+function renderDeletionRecovery9012(state){
+ const box=el('eraseError');if(box&&state.message){box.textContent=state.message;box.style.display='block';}
+ const busy=state.inFlight||state.checking||state.finishing;
+ el('eraseCheck').hidden=!state.pending||state.done;el('eraseCheck').disabled=state.checking||state.finishing;
+ el('eraseSignIn').hidden=!state.pending||(!state.needsAuth&&!!currentSession)||state.inFlight||state.finishing||state.done;
+ el('eraseGo').textContent=state.pending?(state.done?'Account deleted':state.canRetry?'Finish deleting':'Waiting for confirmation…'):'Permanently delete my account';
+ el('eraseGo').disabled=state.pending?!state.canRetry:busy;el('eraseGo').style.opacity=el('eraseGo').disabled?'.5':'1';
+ for(const id of ['eraseCancel','eraseGate','eraseSuccessor','eraseBackup'])el(id).disabled=state.pending||busy;
+ if(state.pending){
+  for(const id of ['splashLogo','splashWoman']){const node=el(id);if(node)node.style.display='none';}
+  if(!deletionSignIn9012||currentSession){deletionSignIn9012=false;const wrap=document.querySelector('.wrap');if(wrap){wrap.inert=true;wrap.hidden=true;}openModal('eraseModal');}
+ }else if(!busy)checkErase();
+}
+if(window.app9012Deletion){
+ const safeStorage=name=>({getItem:key=>window[name].getItem(key),setItem:(key,value)=>window[name].setItem(key,value),removeItem:key=>window[name].removeItem(key)});
+ deletionRecovery9012=window.app9012Deletion.create({
+  storage:safeStorage('localStorage'),tabStorage:safeStorage('sessionStorage'),session:()=>currentSession,
+  cacheOwner:()=>{try{return localStorage.getItem(CLOUD_COPY_MARKER);}catch(e){return null;}},
+  authOwner:()=>{
+   try{const key='sb-'+new URL(SUPABASE_URL).hostname.split('.')[0]+'-auth-token',raw=localStorage.getItem(key);if(!raw)return null;const saved=JSON.parse(raw);return saved&&saved.user&&saved.user.id||'unrecognized-session';}
+   catch(e){return 'unrecognized-session';}
+  },
+  exclusive:claim=>{if(!navigator.locks)return Promise.reject(Object.assign(new Error('recovery_unavailable'),{code:'recovery_unavailable'}));return navigator.locks.request('9012-account-deletion',claim);},
+  id:()=>crypto.randomUUID(),setTimeout,clearTimeout,preflight:deletionPreflight9012,
+  status:(_user,token)=>deletionRequest9012('/rest/v1/rpc/app9012_account_deletion_status',token,{},15000),
+  erase:(_user,token,successor)=>deletionRequest9012('/functions/v1/delete-account',token,{confirmation:'DELETE MY ACCOUNT',successorPersonId:successor||undefined}),
+  freeze:pending=>{accountDeletionBusy=pending;if(pending){clearTimeout(cloudSaveTimer);cloudSaveTimer=null;cloudSavePending=false;clearTimeout(secretDraftTimer);secretDraftTimer=null;}},
+  render:renderDeletionRecovery9012,
+  clearDevice:async function(operation,owns){
+   if(!owns())throw Object.assign(new Error('account_changed'),{code:'account_changed'});
+   clearTimeout(secretDraftTimer);secretDraftTimer=null;clearSecretResumeMarker();
+   // Auth deletion is already confirmed. Clear the matching saved session below,
+   // without asking the shared SDK to load and sign out a possibly newer account.
+   if(!owns())throw Object.assign(new Error('account_changed'),{code:'account_changed'});
+   const cleared=await clearLocal9012(owns);
+   if(!owns())throw Object.assign(new Error('account_changed'),{code:'account_changed'});
+   people=[];releasedPeople=[];cur=0;activePersonId=null;householdRole=null;householdId=null;currentSession=null;cloudMode='local';
+   const draft=el('prayerBody');if(draft)draft.value='';
+   if(!cleared){document.querySelector('.wrap').innerHTML='';return false;}
+   return true;
+  },
+  complete:()=>{const cleanUrl=new URL(location.href);cleanUrl.search='';cleanUrl.hash='';location.replace(cleanUrl.href);}
+ });
 }
 
 /* boot */
@@ -3634,7 +3702,7 @@ function pendingThemeKey(userId){return PENDING_THEME_KEY_PREFIX+String(userId||
 function readPendingTheme(userId){try{const value=localStorage.getItem(pendingThemeKey(userId));return value&&Object.prototype.hasOwnProperty.call(THEME_ASSETS,value)?value:null;}catch(e){return null;}}
 function savePendingTheme(userId,key){try{localStorage.setItem(pendingThemeKey(userId),knownThemeKey(key));return true;}catch(e){return false;}}
 function clearPendingTheme(userId){try{localStorage.removeItem(pendingThemeKey(userId));}catch(e){}}
-function sameThemeSession(session){return !!(session&&session.user&&currentSession&&currentSession.user&&currentSession.user.id===session.user.id);}
+function sameThemeSession(session){if(typeof accountDeletionPending9012==='function'&&accountDeletionPending9012())return false;return !!(session&&session.user&&currentSession&&currentSession.user&&currentSession.user.id===session.user.id);}
 async function syncThemePreference(key,session){
  if(!supabaseClient||!sameThemeSession(session))return false;
  const r=await supabaseClient.rpc('app9012_set_my_theme',{p_theme_key:knownThemeKey(key)});
@@ -3656,6 +3724,7 @@ async function loadCloudThemeForSessionNow(session){
  }catch(e){console.warn('90:12 account theme unavailable',e);return null;}
 }
 async function loadCloudThemeForSession(){
+ if(typeof accountDeletionPending9012==='function'&&accountDeletionPending9012())return null;
  const session=currentSession,userId=session&&session.user&&session.user.id;if(!userId)return null;
  if(cloudThemeLoadPromise&&cloudThemeLoadOwnerId===userId)return cloudThemeLoadPromise;
  cloudThemeLoadOwnerId=userId;cloudThemeLoadPromise=loadCloudThemeForSessionNow(session);
@@ -3706,6 +3775,7 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 /* Family Photo Album */
 // FAMILY MEDIA BRIDGE
 window.app9012FamilyMediaContext=function(){
+  if(accountDeletionPending9012())return {client:null,userId:null,householdId:null};
   return {client:supabaseClient,userId:currentSession&&currentSession.user?currentSession.user.id:null,householdId:cloudMode==='household'?householdId:null};
 };
 window.app9012FamilyMediaStopSpeech=function(){
@@ -3874,6 +3944,36 @@ function renderRemembrance(){var c=el('remembrance');var pr=(P()?P().prayers:[])
  c.innerHTML='<div class="rhead"><h2>The Book of Remembrance</h2><p>&ldquo;A book of remembrance was written before him for them that feared the LORD.&rdquo; &mdash; Malachi 3:16</p></div>'+
  s.map(function(x){return '<div class="prayercard answered"><div class="pbody">'+esc(x.body)+'</div><div class="pmeta">Asked '+fmt(x.date)+' &middot; prayed '+(x.timesPrayed||1)+'\u00d7 &middot; answered after '+daysBetween(x.date,x.answeredDate)+' days</div>'+(x.answerNote?'<div class="answerline">How He answered: '+esc(x.answerNote)+'</div>':'')+'<details class="prayeddays"><summary>Every day you prayed this ('+((x.prayedDates||[x.date]).length)+')</summary><div class="dayslist">'+(x.prayedDates||[x.date]).map(function(d){return fmt(d);}).join('<br>')+'</div></details></div>';}).join('');}
 
+/* DELETION BOOT GUARD — installed outside the protected account-recovery code. */
+(function(){
+ const originalResume=resumePasswordRecovery;
+ resumePasswordRecovery=function(session){
+  if(accountDeletionPending9012()){
+   if(deletionRecovery9012){deletionRecovery9012.restore();renderDeletionRecovery9012(deletionRecovery9012.state());setTimeout(checkDeletionProgress9012,0);}
+   return true;
+  }
+  return originalResume(session);
+ };
+ const originalShow=show;
+ show=function(id){if(accountDeletionPending9012()&&!(deletionSignIn9012&&['viewLetter','viewRecoverAccount','viewRecoverEmail','viewResetPassword'].includes(id)))return;return originalShow(id);};
+ if(supabaseClient){
+  const subscribe=supabaseClient.auth.onAuthStateChange.bind(supabaseClient.auth);
+  supabaseClient.auth.onAuthStateChange=function(callback){return subscribe(function(event,session){
+   if(!accountDeletionPending9012())return callback(event,session);
+   if(deletionRecovery9012)deletionRecovery9012.rememberSession();
+   currentSession=session;
+   setTimeout(function(){if(deletionRecovery9012){deletionRecovery9012.restore();renderDeletionRecovery9012(deletionRecovery9012.state());checkDeletionProgress9012();}},0);
+  });};
+ }
+ window.addEventListener('storage',function(event){
+  if(event.key==='9012_account_deletion_pending'||event.key===null){
+   if(accountDeletionPending9012()&&deletionRecovery9012){deletionRecovery9012.restore();renderDeletionRecovery9012(deletionRecovery9012.state());checkDeletionProgress9012();}
+  }
+ });
+ if(deletionRecovery9012)deletionRecovery9012.restore();
+})();
+/* END DELETION BOOT GUARD */
+
 // Supabase processes magic-link sessions asynchronously when the page opens.
 // getSession() can run before that URL processing has finished, so listen for the
 // Supabase processes magic-link sessions asynchronously. Existing-account family
@@ -3952,7 +4052,7 @@ if(supabaseClient){
 <link rel="stylesheet" href="assets/keepsakes.css?v=20260909c"/>
 <script>
 window.app9012KeepsakeBridge={
- context:function(){return {client:supabaseClient,userId:currentSession&&currentSession.user?currentSession.user.id:null,householdId:cloudMode==='household'?householdId:null,personId:activePersonId};},
+ context:function(){if(accountDeletionPending9012())return {client:null,userId:null,householdId:null,personId:null};return {client:supabaseClient,userId:currentSession&&currentSession.user?currentSession.user.id:null,householdId:cloudMode==='household'?householdId:null,personId:activePersonId};},
  isOwnShelf:function(){return !!(currentSession&&activePersonId&&P()&&P().id===activePersonId);},
  entered:function(){return !!(currentSession&&projectGuideEntered9012&&projectGuideRooms9012.has(activeViewId()));},
  hand:function(){var me=people.find(function(p){return p.id===activePersonId;});return me&&me.hand?me.hand:'caveat';},
@@ -4035,6 +4135,7 @@ window.app9012KeepsakeBridge={
  if(supabaseClient&&typeof supabaseClient.rpc==='function'){
    const originalRpc=supabaseClient.rpc.bind(supabaseClient);
    supabaseClient.rpc=async function(name,args,options){
+     if(typeof accountDeletionPending9012==='function'&&accountDeletionPending9012())return {data:null,error:{code:'account_deletion_pending',message:'Account deletion needs confirmation.'}};
      const isShelfSave=name==='app9012_save';
      if(isShelfSave){cloudSaveState='saving';renderSaveStatus();}
      try{
